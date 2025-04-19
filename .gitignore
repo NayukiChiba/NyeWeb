@@ -51,3 +51,10 @@ frontend/public
 !frontend/public/favicon.svg
 
 db/data_insertion.sql
+
+# Content & Data (managed separately)
+content/
+data/
+
+# Test DB
+test.db
