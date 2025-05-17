@@ -1,1 +1,1 @@
-# This makes app directory a Python package
+# NayukiWeb Backend Application Package
