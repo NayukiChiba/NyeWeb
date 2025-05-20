@@ -1,18 +1,21 @@
 <template>
-  <router-link :to="projectLink" class="card-link">
+  <a :href="project.link" target="_blank" rel="noopener" class="card-link">
     <el-card class="project-card" shadow="hover">
       <template #header>
         <div class="card-header">
-          <span>{{ project.title }}</span>
+          <span>{{ project.name }}</span>
+          <el-tag v-if="project.status" :type="statusType" size="small" effect="plain" round>
+            {{ statusLabel }}
+          </el-tag>
         </div>
       </template>
       <div class="card-summary">
-        <p>{{ project.summary }}</p>
+        <p>{{ project.description }}</p>
       </div>
       <div class="card-footer">
         <div class="project-tags">
           <el-tag
-              v-for="tag in project.tags"
+              v-for="tag in (project.techStack || project.tags || [])"
               :key="tag"
               effect="plain"
               round
@@ -22,10 +25,9 @@
             {{ tag }}
           </el-tag>
         </div>
-        <div class="project-date">{{ project.date }}</div>
       </div>
     </el-card>
-  </router-link>
+  </a>
 </template>
 
 <script setup>
@@ -38,8 +40,14 @@ const props = defineProps({
   }
 })
 
-const projectLink = computed(() => {
-  return `/projects/${props.project.slug}`
+const statusType = computed(() => {
+  const map = { completed: 'success', 'in-progress': 'warning', planning: 'info' }
+  return map[props.project.status] || 'info'
+})
+
+const statusLabel = computed(() => {
+  const map = { completed: '已完成', 'in-progress': '进行中', planning: '计划中' }
+  return map[props.project.status] || props.project.status
 })
 </script>
 
@@ -54,6 +62,12 @@ const projectLink = computed(() => {
 
 .card-link {
   text-decoration: none;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-header span {
@@ -72,7 +86,7 @@ const projectLink = computed(() => {
   -webkit-line-clamp: 3;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 63px; /* 3 lines * 1.5 line-height * 14px font-size */
+  min-height: 63px;
 }
 
 .card-footer {
@@ -88,11 +102,5 @@ const projectLink = computed(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.project-date {
-  color: #909399;
-  font-size: 14px;
-  white-space: nowrap;
 }
 </style>
