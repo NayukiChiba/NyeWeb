@@ -15,12 +15,12 @@
         <el-timeline v-show="!isCollapsed && !loading && sortedProjects.length > 0">
           <el-timeline-item
               v-for="project in sortedProjects"
-              :key="project.slug"
-              :timestamp="project.date"
+              :key="project.id"
+              :timestamp="project.status"
               placement="top"
           >
-            <a class="timeline-link" @click.prevent="onProjectClick(project.slug)">
-              {{ project.title }}
+            <a class="timeline-link" @click.prevent="onProjectClick(project.id)">
+              {{ project.name }}
             </a>
           </el-timeline-item>
         </el-timeline>
@@ -77,11 +77,11 @@ const fetchProjects = async () => {
 
 // 修改：直接使用传入的projects，这样可以响应筛选
 const sortedProjects = computed(() => {
-  return [...props.projects].sort((a, b) => new Date(b.date) - new Date(a.date))
+  return [...props.projects]
 })
 
-const onProjectClick = (slug) => {
-  emit('scrollToProject', slug)
+const onProjectClick = (id) => {
+  emit('scrollToProject', id)
 }
 
 const clearFilter = () => {
