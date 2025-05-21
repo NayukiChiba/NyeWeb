@@ -2,18 +2,13 @@
   <a :href="tool.url" class="tool-card-link" rel="noopener noreferrer" target="_blank">
     <el-card class="tool-card" shadow="hover">
       <div class="card-content">
-        <h3 class="tool-title">{{ tool.title }}</h3>
+        <div class="tool-header">
+          <span v-if="tool.icon" class="tool-icon" v-html="tool.icon"></span>
+          <h3 class="tool-title">{{ tool.name }}</h3>
+        </div>
         <p class="tool-description">{{ tool.description }}</p>
-        <div class="tool-tags">
-          <el-tag
-              v-for="tag in tool.tags"
-              :key="tag"
-              class="tool-tag"
-              size="small"
-              type="info"
-          >
-            {{ tag }}
-          </el-tag>
+        <div v-if="tool.category" class="tool-category">
+          <el-tag size="small" type="info" effect="plain" round>{{ tool.category }}</el-tag>
         </div>
       </div>
     </el-card>
@@ -25,14 +20,6 @@ defineProps({
   tool: {
     type: Object,
     required: true,
-    validator: (value) => {
-      return (
-          typeof value.title === 'string' &&
-          typeof value.description === 'string' &&
-          Array.isArray(value.tags) &&
-          typeof value.url === 'string'
-      );
-    },
   },
 });
 </script>
@@ -62,28 +49,44 @@ defineProps({
   height: 100%;
 }
 
+.tool-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tool-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.tool-icon :deep(svg) {
+  width: 20px;
+  height: 20px;
+  color: var(--el-color-primary);
+}
+
 .tool-title {
   font-size: 1.2em;
   font-weight: bold;
-  margin: 0 0 10px 0;
+  margin: 0;
 }
 
 .tool-description {
   font-size: 0.9em;
   color: var(--el-text-color-secondary);
-  flex-grow: 1; /* Pushes tags to the bottom */
+  flex-grow: 1;
   margin-bottom: 15px;
 }
 
-.tool-tags {
+.tool-category {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.tool-tag {
-  background-color: #f0f2f5;
-  border-color: #e0e2e5;
-  color: #606266;
 }
 </style>
