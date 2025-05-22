@@ -37,7 +37,7 @@
         <div v-loading="projectsLoading" class="card-list">
           <ProjectCard
               v-for="project in recentProjects"
-              :key="project.slug"
+              :key="project.id"
               :project="project"
               class="list-item-card"
           />
@@ -121,7 +121,7 @@ const recentArticles = computed(() => {
 // 最近项目(从数据库获取，取前3个)
 const recentProjects = computed(() => {
   return [...projectsFromDB.value]
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .sort((a, b) => b.id - a.id)
       .slice(0, 3)
 })
 
