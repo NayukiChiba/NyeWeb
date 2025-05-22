@@ -59,7 +59,7 @@ const fetchProjectTags = async () => {
 
 // 所有项目，按日期降序排序
 const sortedProjects = computed(() => {
-  return [...projects.value].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  return [...projects.value].sort((a, b) => b.id - a.id)
 })
 
 // 当前选择的标签
@@ -149,8 +149,8 @@ onMounted(async () => {
         <div v-else class="projects-grid">
           <ProjectCard
               v-for="project in displayedProjects"
-              :id="project.slug"
-              :key="project.slug"
+              :id="project.id"
+              :key="project.id"
               :project="project"
           />
         </div>
