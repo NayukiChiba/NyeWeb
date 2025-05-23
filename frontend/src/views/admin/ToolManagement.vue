@@ -86,9 +86,9 @@
             empty-text="暂无工具数据"
             stripe
         >
-          <el-table-column label="工具标题" min-width="200" prop="title" show-overflow-tooltip>
+          <el-table-column label="工具名称" min-width="200" prop="name" show-overflow-tooltip>
             <template #default="scope">
-              <div class="tool-title">{{ scope.row.title }}</div>
+              <div class="tool-title">{{ scope.row.name }}</div>
             </template>
           </el-table-column>
           <el-table-column label="工具链接" min-width="250" prop="url" show-overflow-tooltip>
@@ -166,11 +166,11 @@
           :rules="createRules"
           label-width="100px"
       >
-        <el-form-item label="工具标题" prop="title">
+        <el-form-item label="工具名称" prop="name">
           <el-input
-              v-model="createForm.title"
+              v-model="createForm.name"
               clearable
-              placeholder="请输入工具标题"
+              placeholder="请输入工具名称"
           />
         </el-form-item>
         <el-form-item label="工具链接" prop="url">
@@ -240,11 +240,11 @@
           :rules="editRules"
           label-width="100px"
       >
-        <el-form-item label="工具标题" prop="title">
+        <el-form-item label="工具名称" prop="name">
           <el-input
-              v-model="editForm.title"
+              v-model="editForm.name"
               clearable
-              placeholder="请输入工具标题"
+              placeholder="请输入工具名称"
           />
         </el-form-item>
         <el-form-item label="工具链接" prop="url">
@@ -332,19 +332,19 @@ const currentEditTool = ref(null)
 
 const filterForm = reactive({
   tags: [],
-  title: '',
+  name: '',
   status: ''
 })
 
 const createForm = reactive({
-  title: '',
+  name: '',
   url: '',
   description: '',
   tags: []
 })
 
 const editForm = reactive({
-  title: '',
+  name: '',
   url: '',
   description: '',
   tags: [],
@@ -352,9 +352,9 @@ const editForm = reactive({
 })
 
 const createRules = {
-  title: [
-    {required: true, message: '请输入工具标题', trigger: 'blur'},
-    {min: 1, max: 255, message: '标题长度应在1-255个字符之间', trigger: 'blur'}
+  name: [
+    {required: true, message: '请输入工具名称', trigger: 'blur'},
+    {min: 1, max: 255, message: '名称长度应在1-255个字符之间', trigger: 'blur'}
   ],
   url: [
     {required: true, message: '请输入工具链接', trigger: 'blur'},
@@ -367,9 +367,9 @@ const createRules = {
 }
 
 const editRules = {
-  title: [
-    {required: true, message: '请输入工具标题', trigger: 'blur'},
-    {min: 1, max: 255, message: '标题长度应在1-255个字符之间', trigger: 'blur'}
+  name: [
+    {required: true, message: '请输入工具名称', trigger: 'blur'},
+    {min: 1, max: 255, message: '名称长度应在1-255个字符之间', trigger: 'blur'}
   ],
   url: [
     {required: true, message: '请输入工具链接', trigger: 'blur'},
@@ -429,8 +429,8 @@ const filteredTools = computed(() => {
   if (filterForm.tags && filterForm.tags.length) {
     arr = arr.filter(t => t.tags && filterForm.tags.every(tag => t.tags.includes(tag)))
   }
-  if (filterForm.title) {
-    arr = arr.filter(t => t.title && t.title.includes(filterForm.title))
+  if (filterForm.name) {
+    arr = arr.filter(t => t.name && t.name.includes(filterForm.name))
   }
   if (filterForm.status) {
     arr = arr.filter(t => t.status === filterForm.status)
@@ -473,7 +473,7 @@ const handleEditTool = (tool) => {
   currentEditTool.value = {...tool} // 创建副本避免直接修改原数据
 
   // 填充编辑表单，确保数据类型正确
-  editForm.title = tool.title || ''
+  editForm.name = tool.name || ''
   editForm.url = tool.url || ''
   editForm.description = tool.description || ''
   editForm.tags = Array.isArray(tool.tags) ? [...tool.tags] : []
@@ -564,7 +564,7 @@ const resetCreateForm = () => {
     createFormRef.value.resetFields()
   }
   Object.assign(createForm, {
-    title: '',
+    name: '',
     url: '',
     description: '',
     tags: []
@@ -587,7 +587,7 @@ const handleUpdateTool = async () => {
 
     // 准备更新数据，确保数据格式正确
     const updateData = {
-      title: editForm.title?.trim() || '',
+      name: editForm.name?.trim() || '',
       url: editForm.url?.trim() || '',
       description: editForm.description?.trim() || '',
       tags: Array.isArray(editForm.tags) ? editForm.tags.filter(tag => tag?.trim()) : [],
@@ -595,8 +595,8 @@ const handleUpdateTool = async () => {
     }
 
     // 数据验证
-    if (!updateData.title) {
-      ElMessage.error('工具标题不能为空')
+    if (!updateData.name) {
+      ElMessage.error('工具名称不能为空')
       return
     }
 
@@ -733,7 +733,7 @@ const resetEditForm = () => {
     editFormRef.value.resetFields()
   }
   Object.assign(editForm, {
-    title: '',
+    name: '',
     url: '',
     description: '',
     tags: [],
@@ -748,7 +748,7 @@ const hasUnsavedChanges = () => {
 
   const current = currentEditTool.value
   return (
-      editForm.title !== (current.title || '') ||
+      editForm.name !== (current.name || '') ||
       editForm.url !== (current.url || '') ||
       editForm.description !== (current.description || '') ||
       editForm.status !== (current.status || 'draft') ||
