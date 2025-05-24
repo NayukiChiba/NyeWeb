@@ -8,53 +8,28 @@
       @update:model-value="$emit('update:modelValue', $event)"
   >
     <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-      <!-- 重新上传文件 -->
-      <el-form-item label="重新上传" prop="file">
-        <el-upload
-            ref="uploadRef"
-            :auto-upload="false"
-            :limit="1"
-            :on-change="handleFileChange"
-            :on-remove="handleFileRemove"
-            :show-file-list="true"
-            accept=".md,.markdown"
-            class="upload-section"
-        >
-          <el-button :icon="UploadIcon" type="primary">重新选择Markdown文件</el-button>
-          <template #tip>
-            <div class="el-upload__tip">
-              留空则保持原文件内容不变
-            </div>
-          </template>
-        </el-upload>
-      </el-form-item>
-
-      <!-- 项目标题 -->
-      <el-form-item label="项目标题" prop="title" required>
+      <!-- 项目名称 -->
+      <el-form-item label="项目名称" prop="name" required>
         <el-input
-            v-model="formData.title"
+            v-model="formData.name"
             maxlength="255"
-            placeholder="请输入项目标题"
+            placeholder="请输入项目名称"
             show-word-limit
         />
       </el-form-item>
 
-      <!-- 发布日期 -->
-      <el-form-item label="发布日期" prop="date" required>
-        <el-date-picker
-            v-model="formData.date"
-            format="YYYY-MM-DD"
-            placeholder="选择发布日期"
-            style="width: 100%"
-            type="date"
-            value-format="YYYY-MM-DD"
+      <!-- 项目GitHub链接 -->
+      <el-form-item label="GitHub链接" prop="link" required>
+        <el-input
+            v-model="formData.link"
+            placeholder="https://github.com/..."
         />
       </el-form-item>
 
       <!-- 项目描述 -->
-      <el-form-item label="项目描述" prop="summary">
+      <el-form-item label="项目描述" prop="description">
         <el-input
-            v-model="formData.summary"
+            v-model="formData.description"
             :rows="4"
             maxlength="500"
             placeholder="请输入项目描述"
@@ -63,15 +38,15 @@
         />
       </el-form-item>
 
-      <!-- 项目标签 -->
-      <el-form-item label="项目标签">
+      <!-- 技术栈 -->
+      <el-form-item label="技术栈">
         <el-select
-            v-model="formData.tags"
-            :multiple-limit="5"
+            v-model="formData.techStack"
+            :multiple-limit="10"
             allow-create
             filterable
             multiple
-            placeholder="选择或创建标签"
+            placeholder="选择或输入技术栈"
             style="width: 100%"
         >
           <el-option
@@ -81,24 +56,22 @@
               :value="tag"
           />
         </el-select>
-        <div class="form-tip">最多可选择5个标签</div>
       </el-form-item>
 
       <!-- 项目状态 -->
-      <el-form-item label="项目状态" prop="status" required>
+      <el-form-item label="项目状态" prop="status">
         <el-radio-group v-model="formData.status">
-          <el-radio value="draft">
-            <el-icon>
-              <Edit/>
-            </el-icon>
-            草稿
-          </el-radio>
-          <el-radio value="published">
-            <el-icon>
-              <Check/>
-            </el-icon>
-            发布
-          </el-radio>
+          <el-radio value="planning">计划中</el-radio>
+          <el-radio value="in-progress">进行中</el-radio>
+          <el-radio value="completed">已完成</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <!-- 可见性 -->
+      <el-form-item label="可见性" prop="visibility">
+        <el-radio-group v-model="formData.visibility">
+          <el-radio value="draft">草稿</el-radio>
+          <el-radio value="published">发布</el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
@@ -131,22 +104,22 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'update-success'])
 
 const formData = reactive({
-  title: '',
-  date: '',
-  summary: '',
-  tags: [],
-  status: 'draft',
-  file: null,
-  content: ''
+  name: '',
+  link: '',
+  description: '',
+  techStack: [],
+  status: 'planning',
+  visibility: 'draft',
 })
 
 const formRules = {
-  title: [
-    {required: true, message: '请输入项目标题', trigger: 'blur'},
-    {min: 1, max: 255, message: '标题长度应在1-255个字符之间', trigger: 'blur'}
+  name: [
+    {required: true, message: '请输入项目名称', trigger: 'blur'},
+    {min: 1, max: 255, message: '名称长度应在1-255个字符之间', trigger: 'blur'}
   ],
-  date: [
-    {required: true, message: '请选择发布日期', trigger: 'change'}
+  link: [
+    {required: true, message: '请输入GitHub链接', trigger: 'blur'},
+    {pattern: /^https?:\/\/.+/, message: '请输入有效的URL', trigger: 'blur'}
   ],
   status: [
     {required: true, message: '请选择项目状态', trigger: 'change'}
@@ -154,7 +127,6 @@ const formRules = {
 }
 
 const formRef = ref(null)
-const uploadRef = ref(null)
 const existingTags = ref([])
 const updating = ref(false)
 const hasChanges = ref(false)
@@ -168,19 +140,18 @@ watch(() => props.project, (newProject) => {
 
 const initializeForm = (project) => {
   Object.assign(formData, {
-    title: project.title || '',
-    date: project.date || '',
-    summary: project.summary || '',
-    tags: Array.isArray(project.tags) ? [...project.tags] : [],
-    status: project.status || 'draft',
-    file: null,
-    content: ''
+    name: project.name || '',
+    link: project.link || '',
+    description: project.description || '',
+    techStack: Array.isArray(project.techStack) ? [...project.techStack] : [],
+    status: project.status || 'planning',
+    visibility: project.visibility || 'draft',
   })
   hasChanges.value = false
 }
 
 // 监听表单数据变化
-watch(() => [formData.title, formData.date, formData.summary, formData.tags, formData.status], () => {
+watch(() => [formData.name, formData.link, formData.description, formData.techStack, formData.status, formData.visibility], () => {
   hasChanges.value = true
 }, {deep: true})
 
@@ -198,27 +169,7 @@ const fetchTags = async () => {
   }
 }
 
-const handleFileChange = (file) => {
-  if (file && file.raw) {
-    formData.file = file.raw
-    hasChanges.value = true
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      formData.content = e.target.result
-    }
-    reader.onerror = () => {
-      ElMessage.error('文件读取失败')
-    }
-    reader.readAsText(file.raw, 'utf-8')
-  }
-}
-
-const handleFileRemove = () => {
-  formData.file = null
-  formData.content = ''
-  hasChanges.value = true
-}
 
 const handleUpdate = async () => {
   if (!formRef.value) return
@@ -229,57 +180,15 @@ const handleUpdate = async () => {
     updating.value = true
 
     const updateData = {
-      title: formData.title,
-      date: formData.date,
-      summary: formData.summary,
-      tags: formData.tags,
-      status: formData.status
+      name: formData.name,
+      link: formData.link,
+      description: formData.description,
+      tech_stack: formData.techStack,
+      status: formData.status,
+      visibility: formData.visibility,
     }
 
-    // 如果有新文件，则包含内容
-    if (formData.file && formData.content) {
-      updateData.content = formData.content
-    }
-
-    // 首先尝试PUT方法
-    let response
-    try {
-      response = await axios.put(`/api/projects/${props.project.id}`, updateData, {
-        timeout: 30000,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      })
-    } catch (putError) {
-      // 如果PUT方法不支持，尝试PATCH方法
-      if (putError.response?.status === 405) {
-        try {
-          response = await axios.patch(`/api/projects/${props.project.id}`, updateData, {
-            timeout: 30000,
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-          })
-        } catch (patchError) {
-          // 如果PATCH也不支持，尝试POST到更新端点
-          if (patchError.response?.status === 405) {
-            response = await axios.post(`/api/projects/${props.project.id}/edit`, updateData, {
-              timeout: 30000,
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-              }
-            })
-          } else {
-            throw patchError
-          }
-        }
-      } else {
-        throw putError
-      }
-    }
+    await axios.put(`/api/projects/${props.project.id}`, updateData)
 
     ElMessage.success('项目更新成功')
     hasChanges.value = false
