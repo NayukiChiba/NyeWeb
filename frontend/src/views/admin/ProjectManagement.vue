@@ -107,7 +107,7 @@ const filteredProjects = computed(() => {
     arr = arr.filter(p => p.tags && filterForm.tags.every(tag => p.tags.includes(tag)))
   }
   if (filterForm.title) {
-    arr = arr.filter(p => p.title && p.title.includes(filterForm.title))
+    arr = arr.filter(p => p.name && p.name.includes(filterForm.title))
   }
   if (filterForm.status) {
     arr = arr.filter(p => p.status === filterForm.status)
@@ -119,12 +119,8 @@ const filteredProjects = computed(() => {
 const sortedProjects = computed(() => {
   const arr = [...filteredProjects.value]
   arr.sort((a, b) => {
-    const v1 = new Date(a.date || '1970-01-01')
-    const v2 = new Date(b.date || '1970-01-01')
-
-    if (v1 < v2) return sortOrder.value === 'asc' ? -1 : 1
-    if (v1 > v2) return sortOrder.value === 'asc' ? 1 : -1
-    return 0
+    if (sortOrder.value === 'asc') return a.id - b.id
+    return b.id - a.id
   })
   return arr
 })
@@ -204,13 +200,10 @@ const updateProjectStatus = async (project, newStatus) => {
 
 // 访问项目
 const visitProject = (project) => {
-  if (project.status === 'published') {
-    // 在新标签页中打开项目详情页
-    const filename = project.slug || project.filename
-    const url = `/projects/${filename}`
-    window.open(url, '_blank')
+  if (project.link) {
+    window.open(project.link, '_blank')
   } else {
-    ElMessage.warning('只有已发布的项目才能访问')
+    ElMessage.warning('该项目没有链接')
   }
 }
 
