@@ -1,62 +1,47 @@
-# 数据库初始化脚本
-# 用于创建表和插入初始数据
-import os
+"""
+数据库初始化脚本 — 创建表和管理员账户
+"""
 
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import logging
 
-from crud.admin import create_admin
-from database import Admin
-from database import Base
+from app.core.config import get_settings
+from app.core.database import engine, SessionLocal
+from app.models import Base, Admin
+from app.services.admin import create_admin
 
-# 加载环境变量
-load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("init_db")
 
 
-# 创建数据库表
-def create_database_tables(engine):
+def create_database_tables() -> None:
+    """创建所有数据库表"""
     Base.metadata.create_all(bind=engine)
-    print("数据库表创建成功!")
+    logger.info("数据库表创建成功!")
 
 
-def create_admin_account(db):
+def create_admin_account() -> None:
     """创建管理员账户"""
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+    settings = get_settings()
+    if not settings.ADMIN_PASSWORD:
+        logger.warning("ADMIN_PASSWORD 未设置，跳过管理员账户创建")
+        return
 
-    if not ADMIN_PASSWORD:
-        raise ValueError("ADMIN_PASSWORD environment variable is not set")
-
-    # 检查是否已存在管理员
-    existing_admin = db.query(Admin).filter(Admin.username == "admin").first()
-    if not existing_admin:
-        create_admin(db, "admin", ADMIN_PASSWORD)
-        print("管理员账户创建成功!")
-    else:
-        print("管理员账户已存在!")
-
-
-# 初始化数据库表
-def init_database():
-    DATABASE_URL = os.getenv("DATABASE_URL")
-
-    if not DATABASE_URL:
-        raise ValueError("DATABASE_URL environment variable is not set")
-
-    engine = create_engine(DATABASE_URL, echo=True)
-
-    # 创建所有表
-    create_database_tables(engine)
-
-    # 创建数据库会话
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
-
     try:
-        # 创建管理员账户
-        create_admin_account(db)
+        existing = db.query(Admin).filter(Admin.username == "admin").first()
+        if not existing:
+            create_admin(db, "admin", settings.ADMIN_PASSWORD)
+            logger.info("管理员账户创建成功!")
+        else:
+            logger.info("管理员账户已存在!")
     finally:
         db.close()
+
+
+def init_database() -> None:
+    """初始化数据库"""
+    create_database_tables()
+    create_admin_account()
 
 
 if __name__ == "__main__":
