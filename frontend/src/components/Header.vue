@@ -74,7 +74,7 @@ onUnmounted(() => {
       <!-- 左侧Logo -->
       <div class="admin-logo-section">
         <router-link class="admin-logo-link" title="转跳到首页" to="/">
-          <span class="admin-logo-text">NyeWeb</span>
+          <span class="admin-logo-text">NayukiWeb</span>
         </router-link>
       </div>
 
@@ -92,7 +92,7 @@ onUnmounted(() => {
       <!-- 左侧 Logo/Icon 和 汉堡菜单 -->
       <div class="header-left">
         <router-link class="logo-link" to="/">
-          <span class="logo-text">NyeWeb</span>
+          <span class="logo-text">NayukiWeb</span>
         </router-link>
         <el-icon class="hamburger" @click="toggleMenu">
           <IconMenu/>
