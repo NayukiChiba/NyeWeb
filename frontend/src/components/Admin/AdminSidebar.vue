@@ -50,7 +50,7 @@
       :class="{ 'mobile-sidebar': isMobile, 'sidebar-collapsed': isMobile && !sidebarVisible }"
     >
       <div class="sidebar-header">
-        <h2>NyeWeb</h2>
+        <h2>NayukiWeb</h2>
         <h3>管理面板</h3>
       </div>
 
