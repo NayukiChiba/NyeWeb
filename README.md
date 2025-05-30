@@ -1,8 +1,8 @@
-# NyeWeb- 个人作品集与知识管理系统
+# NayukiWeb - 个人作品集与知识管理系统
 
 一个基于 FastAPI + Vue.js 的全栈Web应用，包含个人作品展示、文章管理、工具资源等功能。
 
-[项目链接]:https://github.com/NayeyYe/nyeweb.git
+[项目链接]:https://github.com/NayeyYe/NayukiWeb.git
 
 
 ## 🚀 技术栈
@@ -26,7 +26,7 @@
 ## 📦 项目结构
 
 ```
-nyeweb/
+NayukiWeb/
 ├── app/                    # FastAPI 后端应用
 │   ├── crud/              # 数据库操作层
 │   │   ├── admin.py       # 管理员 CRUD 操作
