@@ -105,6 +105,8 @@ onUnmounted(() => {
           <el-menu-item index="/">首页</el-menu-item>
           <el-menu-item index="/projects">项目</el-menu-item>
           <el-menu-item index="/knowledge">知识</el-menu-item>
+          <el-menu-item index="/diary">日记</el-menu-item>
+          <el-menu-item index="/todo">待办</el-menu-item>
           <el-menu-item index="/tools">小工具</el-menu-item>
           <el-menu-item index="/resources">资源</el-menu-item>
         </el-menu>
@@ -128,6 +130,8 @@ onUnmounted(() => {
       <router-link @click="closeMenu" class="mobile-menu-item" to="/">首页</router-link>
       <router-link @click="closeMenu" class="mobile-menu-item" to="/projects">项目</router-link>
       <router-link @click="closeMenu" class="mobile-menu-item" to="/knowledge">知识</router-link>
+      <router-link @click="closeMenu" class="mobile-menu-item" to="/diary">日记</router-link>
+      <router-link @click="closeMenu" class="mobile-menu-item" to="/todo">待办</router-link>
       <router-link @click="closeMenu" class="mobile-menu-item" to="/tools">小工具</router-link>
       <router-link @click="closeMenu" class="mobile-menu-item" to="/resources">资源</router-link>
     </div>
