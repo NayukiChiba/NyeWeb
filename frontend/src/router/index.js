@@ -6,6 +6,8 @@ import Project from '../views/Main/Project.vue'
 import Tools from '../views/Main/Tools.vue'
 import Resources from '../views/Main/Resources.vue'
 import AboutMe from '../views/Main/AboutMe.vue'
+import Diary from '../views/Main/Diary.vue'
+import Todo from '../views/Main/Todo.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import DashBoard from '@/views/admin/DashBoard.vue'
 import ProjectManagement from '@/views/admin/ProjectManagement.vue'
@@ -50,6 +52,16 @@ const routes = [
         path: '/projects/:slug',
         name: 'Project',
         component: Project
+    },
+    {
+        path: '/diary',
+        name: 'Diary',
+        component: Diary
+    },
+    {
+        path: '/todo',
+        name: 'Todo',
+        component: Todo
     },
     {
         path: '/tools',
