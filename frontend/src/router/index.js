@@ -14,6 +14,8 @@ import ProjectManagement from '@/views/admin/ProjectManagement.vue'
 import ArticleManagement from '@/views/admin/ArticleManagement.vue'
 import ToolManagement from '@/views/admin/ToolManagement.vue'
 import ResourceManagement from '@/views/admin/ResourceManagement.vue'
+import DiaryManagement from '@/views/admin/DiaryManagement.vue'
+import TodoManagement from '@/views/admin/TodoManagement.vue'
 
 const routes = [
     {
@@ -113,6 +115,18 @@ const routes = [
                 name: 'ResourceManagement',
                 component: ResourceManagement,
                 meta: {title: '资源管理'}
+            },
+            {
+                path: 'diaries',
+                name: 'DiaryManagement',
+                component: DiaryManagement,
+                meta: {title: '日记管理'}
+            },
+            {
+                path: 'todos',
+                name: 'TodoManagement',
+                component: TodoManagement,
+                meta: {title: '待办管理'}
             }
         ]
     }
