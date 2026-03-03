@@ -32,6 +32,14 @@
           <el-icon><Box /></el-icon>
           <span>资源管理</span>
         </div>
+        <div class="mobile-menu-item" @click="navigateTo('/admin/diaries')">
+          <el-icon><Notebook /></el-icon>
+          <span>日记管理</span>
+        </div>
+        <div class="mobile-menu-item" @click="navigateTo('/admin/todos')">
+          <el-icon><List /></el-icon>
+          <span>待办管理</span>
+        </div>
         <div class="mobile-menu-item" @click="goHome">
           <el-icon><HomeFilled /></el-icon>
           <span>返回首页</span>
@@ -95,6 +103,20 @@
           <span>资源管理</span>
         </el-menu-item>
 
+        <el-menu-item class="menu-item" index="/admin/diaries">
+          <el-icon>
+            <Notebook/>
+          </el-icon>
+          <span>日记管理</span>
+        </el-menu-item>
+
+        <el-menu-item class="menu-item" index="/admin/todos">
+          <el-icon>
+            <List/>
+          </el-icon>
+          <span>待办管理</span>
+        </el-menu-item>
+
       </el-menu>
 
       <div class="sidebar-footer">
@@ -121,7 +143,7 @@
 <script setup>
 import {computed, ref, onMounted, onBeforeUnmount} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {Box, Document, Folder, HomeFilled, House, SwitchButton, Tools, Menu} from '@element-plus/icons-vue'
+import {Box, Document, Folder, HomeFilled, House, SwitchButton, Tools, Menu, Notebook, List} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
