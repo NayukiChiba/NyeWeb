@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-accent: #6366F1;
+    --gradient-brand: linear-gradient(135deg, #6366F1 0%, #EC4899 50%, #F59E0B 100%);
+    --gradient-subtle: linear-gradient(135deg, #EEF2FF 0%, #FDF2F8 50%, #FFFBEB 100%);
+  }
+
+  body {
+    @apply bg-white text-primary font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgba(99, 102, 241, 0.15);
+  }
+}
+
+@layer components {
+  /* ─── Artistic gradient stripe: thin decorative line ─── */
+  .gradient-stripe {
+    height: 3px;
+    background: var(--gradient-brand);
+    border-radius: 999px;
+  }
+
+  /* ─── Glass Card ─── */
+  .glass-card {
+    @apply bg-white rounded-2xl p-6 border border-gray-200 transition-all duration-300 cursor-pointer relative overflow-hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .glass-card:hover {
+    @apply -translate-y-1;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.08), 0 10px 10px -5px rgba(0,0,0,0.04);
+  }
+
+  /* ─── Gradient Text ─── */
+  .text-gradient {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ─── Section Title ─── */
+  .section-title {
+    @apply text-2xl font-bold text-primary tracking-tight;
+    position: relative;
+    display: inline-block;
+  }
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 32px;
+    height: 3px;
+    background: var(--gradient-brand);
+    border-radius: 999px;
+  }
+
+  /* ─── Tag Pill ─── */
+  .tag-pill {
+    @apply px-3 py-1 text-xs font-medium rounded-full transition-colors duration-200 cursor-pointer;
+    background: linear-gradient(135deg, #EEF2FF, #FDF2F8);
+    color: #6366F1;
+  }
+  .tag-pill:hover {
+    background: linear-gradient(135deg, #E0E7FF, #FCE7F3);
+  }
+
+  /* ─── Buttons ─── */
+  .btn-primary {
+    @apply px-6 py-2.5 rounded-xl font-semibold text-white text-sm transition-all duration-200 cursor-pointer shadow-sm;
+    background: var(--gradient-brand);
+    background-size: 200% 200%;
+  }
+  .btn-primary:hover {
+    @apply shadow-glow -translate-y-0.5;
+    background-position: right center;
+  }
+}
