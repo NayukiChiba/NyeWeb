@@ -1,48 +1,36 @@
 <template>
-  <a :href="project.link" target="_blank" rel="noopener" class="card-link">
-    <el-card class="project-card" shadow="hover">
-      <template #header>
-        <div class="card-header">
-          <span>{{ project.name }}</span>
-          <el-tag v-if="project.status" :type="statusType" size="small" effect="plain" round>
-            {{ statusLabel }}
-          </el-tag>
-        </div>
-      </template>
-      <div class="card-summary">
-        <p>{{ project.description }}</p>
+  <a :href="project.link" target="_blank" rel="noopener" class="block group">
+    <div class="glass-card flex flex-col h-full group-hover:shadow-glow group-hover:border-accent/30">
+      <div class="flex justify-between items-start mb-2">
+        <h3 class="font-bold text-base text-primary tracking-tight transition-colors group-hover:text-accent leading-snug">
+          {{ project.name }}
+        </h3>
+        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ml-2 flex-shrink-0" :class="statusClass">
+          {{ statusLabel }}
+        </span>
       </div>
-      <div class="card-footer">
-        <div class="project-tags">
-          <el-tag
-              v-for="tag in (project.techStack || project.tags || [])"
-              :key="tag"
-              effect="plain"
-              round
-              size="small"
-              type="info"
-          >
-            {{ tag }}
-          </el-tag>
-        </div>
+      <p class="text-secondary text-sm leading-relaxed line-clamp-2 mb-4 flex-grow">
+        {{ project.description }}
+      </p>
+      <div class="pt-3 border-t border-gray-100 flex flex-wrap gap-1.5 mt-auto">
+        <span v-for="tag in (project.techStack || project.tags || [])" :key="tag" class="tag-pill !text-[11px] !px-2 !py-0.5">{{ tag }}</span>
       </div>
-    </el-card>
+    </div>
   </a>
 </template>
 
 <script setup>
 import {computed} from 'vue'
 
-const props = defineProps({
-  project: {
-    type: Object,
-    required: true
-  }
-})
+const props = defineProps({ project: { type: Object, required: true } })
 
-const statusType = computed(() => {
-  const map = { completed: 'success', 'in-progress': 'warning', planning: 'info' }
-  return map[props.project.status] || 'info'
+const statusClass = computed(() => {
+  const map = { 
+    completed: 'bg-emerald-50 text-emerald-600', 
+    'in-progress': 'bg-amber-50 text-amber-600', 
+    planning: 'bg-slate-100 text-slate-500' 
+  }
+  return map[props.project.status] || 'bg-slate-100 text-slate-500'
 })
 
 const statusLabel = computed(() => {
@@ -50,57 +38,3 @@ const statusLabel = computed(() => {
   return map[props.project.status] || props.project.status
 })
 </script>
-
-<style scoped>
-.project-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-radius: 15px;
-  border: 1px solid var(--el-border-color-lighter);
-}
-
-.card-link {
-  text-decoration: none;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-header span {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #303133;
-}
-
-.card-summary {
-  flex-grow: 1;
-  color: #606266;
-  font-size: 0.9em;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 63px;
-}
-
-.card-footer {
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px solid #ebeef5;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-</style>
