@@ -428,14 +428,16 @@ onUnmounted(() => {
 }
 
 .markdown-body {
-  padding: 2em 2.5em;
-  background-color: #fff;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
+  padding: 3rem 4rem;
+  background-color: var(--color-background, #FAFAFA);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid #E2E8F0;
   position: relative;
   line-height: 1.8;
-  color: #333;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--color-text, #09090B);
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-size: 1.125rem;
 }
 
 .not-found {
@@ -471,23 +473,26 @@ onUnmounted(() => {
 :deep(h4),
 :deep(h5),
 :deep(h6) {
-  padding-left: 1rem;
-  border-left: 5px solid #409eff;
-  margin-top: 2.4rem;
-  margin-bottom: 1.4rem;
-  font-weight: 600;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+  font-family: 'Archivo', sans-serif !important;
+  color: var(--color-primary, #18181B);
+  letter-spacing: -0.02em;
 }
 
 :deep(h1) {
-  font-size: 2em;
+  font-size: 3rem;
+  line-height: 1.1;
+  margin-bottom: 2rem;
 }
 
 :deep(h2) {
-  font-size: 1.6em;
+  font-size: 2.25rem;
 }
 
 :deep(h3) {
-  font-size: 1.3em;
+  font-size: 1.75rem;
 }
 
 /* 代码块容器 */
