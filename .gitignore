@@ -58,3 +58,6 @@ data/
 
 # Test DB
 test.db
+
+.agent/
+design-system/
