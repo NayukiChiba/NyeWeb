@@ -36,6 +36,8 @@
                             v-for="diary in groupedDiaries[year][month]"
                             :key="diary.id"
                             :diary="diary"
+                            :expanded="expandedDiaryId === diary.id"
+                            @toggle="handleDiaryToggle"
                         />
                       </div>
                     </div>
@@ -59,6 +61,7 @@ const loading = ref(false)
 const diaries = ref([])
 const expandedYears = ref(new Set())
 const expandedMonths = ref(new Set())
+const expandedDiaryId = ref(null)
 
 const API_BASE_URL = '/api'
 
@@ -124,6 +127,10 @@ const toggleYear = (year) => {
   }
   // Trigger reactivity
   expandedYears.value = new Set(expandedYears.value)
+}
+
+const handleDiaryToggle = (diaryId) => {
+  expandedDiaryId.value = expandedDiaryId.value === diaryId ? null : diaryId
 }
 
 const toggleMonth = (year, month) => {
