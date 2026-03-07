@@ -26,7 +26,7 @@ import {computed} from 'vue'
 const props = defineProps({ article: { type: Object, required: true } })
 
 const articleLink = computed(() => {
-  if (props.article.category) return `/article/${props.article.category}/${props.article.slug}`
-  return `/article/${props.article.slug}`
+  if (props.article.category) return `/articles/${props.article.category}/${props.article.slug}`
+  return `/articles/${props.article.slug}`
 })
 </script>
