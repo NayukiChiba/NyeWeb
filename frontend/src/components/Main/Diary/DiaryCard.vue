@@ -2,7 +2,7 @@
   <div class="timeline-item">
     <div class="timeline-marker"></div>
     <div class="timeline-content">
-      <div class="diary-summary" @click="isExpanded = !isExpanded">
+      <div class="diary-summary" @click="emit('toggle', diary.id)">
         <span class="diary-date">{{ displayDate }}</span>
         <span class="diary-mood-preview">{{ moodEmoji }}</span>
         <span class="expand-icon" :class="{ expanded: isExpanded }">▶</span>
@@ -70,9 +70,15 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  expanded: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const isExpanded = ref(false)
+const emit = defineEmits(['toggle'])
+
+const isExpanded = computed(() => props.expanded)
 const lightboxVisible = ref(false)
 const lightboxSrc = ref('')
 
