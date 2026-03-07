@@ -123,9 +123,9 @@ const handleArticleSelected = (articleInfo) => {
   console.log('文章选择:', articleInfo)
   // 跳转到选中的文章
   if (articleInfo.category) {
-    router.push(`/article/${articleInfo.category}/${articleInfo.slug}`)
+    router.push(`/articles/${articleInfo.category}/${articleInfo.slug}`)
   } else {
-    router.push(`/article/${articleInfo.slug}`)
+    router.push(`/articles/${articleInfo.slug}`)
   }
 }
 
