@@ -1,70 +1,62 @@
 <template>
   <div class="tools-page">
     <div class="header">
-      <h1>小工具箱</h1>
-      <p>一些实用、有趣、能提升效率的在线小工具集合。</p>
+      <h1 class="section-title text-3xl">小工具箱</h1>
+      <p class="text-secondary mt-2">常用书签、在线工具与资源导航。</p>
     </div>
 
-    <div class="filter-bar">
-      <el-input
-          v-model="searchQuery"
-          class="search-input"
-          clearable
-          placeholder="搜索工具..."
-          size="large"
+    <!-- Search -->
+    <div class="search-bar glass-card !p-4 mb-8">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="搜索工具..."
+        class="w-full bg-transparent outline-none text-primary placeholder:text-secondary/50"
       />
-      <div class="tags-container">
-        <el-tag
-            :type="selectedTags.length === 0 ? '' : 'info'"
-            class="tag-item"
-            effect="light"
-            size="large"
-            @click="selectedTags = []"
-        >
-          全部
-        </el-tag>
-        <el-tag
-            v-for="tag in allTags"
-            :key="tag"
-            :type="selectedTags.includes(tag) ? '' : 'info'"
-            class="tag-item"
-            effect="light"
-            size="large"
-            @click="toggleTag(tag)"
-        >
-          {{ tag }}
-        </el-tag>
-      </div>
     </div>
 
-    <div v-loading="loading">
-      <el-row :gutter="20">
-        <el-col
-            v-for="tool in displayedTools"
-            :key="tool.id"
-            :md="8"
-            :sm="12"
-            :xs="24"
-            class="tool-col"
-        >
-          <ToolCard :tool="tool"/>
-        </el-col>
-      </el-row>
+    <div v-if="loading" class="text-center py-20 text-secondary">加载中...</div>
 
-      <el-empty v-if="!loading && displayedTools.length === 0" description="没有找到匹配的工具"></el-empty>
+    <div v-else-if="categories.length === 0" class="text-center py-20 text-secondary">没有找到匹配的工具</div>
 
-      <!-- 分页控件 -->
-      <div v-if="!loading && displayedTools.length > 0 && totalPages > 1" class="pagination-container">
-        <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="totalItems"
-            :pager-count="5"
-            layout="prev, pager, next, jumper"
-            background
-            @current-change="handlePageChange"
-        />
-      </div>
+    <!-- Category Sections -->
+    <div v-else class="flex flex-col gap-10">
+      <section v-for="category in categories" :key="category" class="category-section">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-primary">{{ category }}</h2>
+          <div v-if="getTotalPages(category) > 1" class="flex items-center gap-3">
+            <button
+              class="nav-btn"
+              :disabled="getCategoryPage(category) === 0"
+              @click="prevPage(category)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="text-sm text-secondary tabular-nums">
+              {{ getCategoryPage(category) + 1 }} / {{ getTotalPages(category) }}
+            </span>
+            <button
+              class="nav-btn"
+              :disabled="getCategoryPage(category) >= getTotalPages(category) - 1"
+              @click="nextPage(category)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tools Grid (current page) -->
+        <transition name="fade" mode="out-in">
+          <div :key="getCategoryPage(category)" class="tools-grid">
+            <ToolCard
+              v-for="tool in getPageTools(category)"
+              :key="tool.id"
+              :tool="tool"
+            />
+          </div>
+        </transition>
+      </section>
     </div>
   </div>
 </template>
@@ -75,277 +67,152 @@ import axios from 'axios';
 import ToolCard from '@/components/Main/Tools/ToolCard.vue';
 
 const searchQuery = ref('');
-const selectedTags = ref([]);
 const loading = ref(false);
-const toolsFromDB = ref([]);
+const allTools = ref([]);
+const categoryPages = ref({});  // { category: currentPageIndex }
 
+const ITEMS_PER_PAGE = 6;
 const API_BASE_URL = '/api';
 
-// 分页状态
-const currentPage = ref(1);
-const pageSize = ref(6);
-const totalItems = ref(0);
-const totalPages = ref(0);
-
-// 获取工具数据
-const fetchTools = async () => {
+// Fetch ALL tools (no server-side pagination)
+const fetchAllTools = async () => {
   loading.value = true;
   try {
-    const params = {
-      page: currentPage.value,
-      limit: pageSize.value
-    };
-    
-    // 添加搜索参数
+    const params = { page: 1, limit: 999 };
     if (searchQuery.value.trim()) {
       params.search = searchQuery.value.trim();
     }
-    
-    // 添加标签参数
-    if (selectedTags.value.length > 0) {
-      params.tags = selectedTags.value.join(',');
-    }
-
     const response = await axios.get(`${API_BASE_URL}/tools`, {
-      params: params,
+      params,
       timeout: 10000,
-      headers: {
-        'Accept': 'application/json'
-      }
+      headers: { 'Accept': 'application/json' }
     });
-
     if (response.data && response.data.data) {
-      toolsFromDB.value = response.data.data;
-      totalItems.value = response.data.pagination.total;
-      totalPages.value = response.data.pagination.pages;
-      console.log(`Tools: 成功获取 ${toolsFromDB.value.length} 个工具，页码: ${currentPage.value}`);
+      allTools.value = response.data.data;
+      // Reset pages
+      categoryPages.value = {};
     }
   } catch (error) {
     console.error('Tools: 获取工具数据失败:', error);
-    toolsFromDB.value = [];
-    totalItems.value = 0;
-    totalPages.value = 0;
+    allTools.value = [];
   } finally {
     loading.value = false;
   }
 };
 
-// 切换页码
-const handlePageChange = (page) => {
-  currentPage.value = page;
-  fetchTools();
-};
-
-// 监听搜索和标签变化，重新获取数据（深度监听以检测数组变化）
-watch([searchQuery, selectedTags], () => {
-  // 重置到第一页
-  currentPage.value = 1;
-  fetchTools();
-}, { deep: true });
-
-// 获取所有工具标签
-const allTags = ref([]);
-const fetchToolTags = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/tool-tags`, {
-      timeout: 10000,
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (response.data && response.data.tags) {
-      allTags.value = response.data.tags.sort();
-      console.log(`Tools: 成功获取 ${allTags.value.length} 个工具标签`);
-    }
-  } catch (error) {
-    console.error('Tools: 获取工具标签失败:', error);
-    allTags.value = [];
-  }
-};
-
-// 直接使用API返回的数据（筛选已在后端完成）
-const displayedTools = computed(() => {
-  return toolsFromDB.value;
+// Group by category
+const grouped = computed(() => {
+  const map = {};
+  allTools.value.forEach(tool => {
+    const cat = tool.category || '其他';
+    if (!map[cat]) map[cat] = [];
+    map[cat].push(tool);
+  });
+  return map;
 });
 
-// 切换标签选择状态
-const toggleTag = (tag) => {
-  const index = selectedTags.value.indexOf(tag);
-  if (index === -1) {
-    // 添加标签
-    selectedTags.value.push(tag);
-  } else {
-    // 移除标签
-    selectedTags.value.splice(index, 1);
-  }
+const categories = computed(() => Object.keys(grouped.value).sort());
+
+const getCategoryPage = (cat) => categoryPages.value[cat] || 0;
+
+const getTotalPages = (cat) => {
+  const tools = grouped.value[cat] || [];
+  return Math.ceil(tools.length / ITEMS_PER_PAGE);
 };
 
-onMounted(() => {
-  fetchTools();
-  fetchToolTags();
+const getPageTools = (cat) => {
+  const tools = grouped.value[cat] || [];
+  const page = getCategoryPage(cat);
+  return tools.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
+};
+
+const prevPage = (cat) => {
+  const current = getCategoryPage(cat);
+  if (current > 0) categoryPages.value[cat] = current - 1;
+};
+
+const nextPage = (cat) => {
+  const current = getCategoryPage(cat);
+  if (current < getTotalPages(cat) - 1) categoryPages.value[cat] = current + 1;
+};
+
+watch(searchQuery, () => {
+  categoryPages.value = {};
+  fetchAllTools();
 });
+
+onMounted(fetchAllTools);
 </script>
 
 <style scoped>
 .tools-page {
-  max-width: 1200px;
+  max-width: 960px;
   margin: 100px auto 40px;
   padding: 0 20px;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
-.header h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
-}
-
-.header p {
-  font-size: 1.1em;
-  color: #606266;
-}
-
-.filter-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-bottom: 40px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 15px;
-  border: 1px solid var(--el-border-color-lighter);
-}
-
-.search-input {
-  max-width: 400px;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.tag-item {
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
   cursor: pointer;
-  user-select: none;
-}
-
-.tool-col {
-  margin-bottom: 20px;
-}
-
-.pagination-container {
-  margin-top: 30px;
+  transition: all 0.2s ease;
   display: flex;
+  align-items: center;
   justify-content: center;
+  padding: 0;
 }
 
-/* 响应式布局 */
-@media (max-width: 1024px) {
-  .tools-page {
-    margin: 90px auto 30px;
-    padding: 0 15px;
+.nav-btn:hover:not(:disabled) {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #f0f0ff;
+}
+
+.nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .header {
-    margin-bottom: 30px;
+}
+
+@media (min-width: 1024px) {
+  .tools-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
-  
-  .header h1 {
-    font-size: 2.2em;
-  }
-  
-  .filter-bar {
-    gap: 15px;
-    margin-bottom: 30px;
-    padding: 15px;
-  }
-  
-  .search-input {
-    max-width: 100%;
-  }
-  
-  .tool-col {
-    margin-bottom: 15px;
-  }
-  
-  .pagination-container {
-    margin-top: 20px;
-  }
+}
+
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 768px) {
   .tools-page {
     margin: 80px auto 20px;
-    padding: 0 10px;
-  }
-  
-  .header {
-    margin-bottom: 25px;
-  }
-  
-  .header h1 {
-    font-size: 2em;
-  }
-  
-  .header p {
-    font-size: 1em;
-  }
-  
-  .filter-bar {
-    gap: 12px;
-    margin-bottom: 25px;
-    padding: 12px;
-  }
-  
-  .tool-col {
-    margin-bottom: 12px;
-  }
-  
-  .pagination-container {
-    margin-top: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tools-page {
-    margin: 70px auto 15px;
-    padding: 0 5px;
-  }
-  
-  .header {
-    margin-bottom: 20px;
-  }
-  
-  .header h1 {
-    font-size: 1.8em;
-  }
-  
-  .header p {
-    font-size: 0.9em;
-  }
-  
-  .filter-bar {
-    gap: 10px;
-    margin-bottom: 20px;
-    padding: 10px;
-  }
-  
-  .tool-col {
-    margin-bottom: 10px;
-  }
-  
-  .pagination-container {
-    margin-top: 10px;
-  }
-  
-  :deep(.el-pagination) {
-    --el-font-size-base: 12px;
   }
 }
 </style>
