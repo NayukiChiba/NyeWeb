@@ -63,18 +63,15 @@
         </div>
       </div>
 
-      <!-- Gallery Grid -->
+      <!-- Gallery Waterfall -->
       <div v-if="activeTab === 'gallery'">
-        <el-row :gutter="20">
-          <el-col
+        <div class="waterfall-grid">
+          <FigureCard
               v-for="figure in displayedItems"
               :key="figure.id"
-              :md="8" :sm="12" :xs="24"
-              class="grid-col"
-          >
-            <FigureCard :figure="figure"/>
-          </el-col>
-        </el-row>
+              :figure="figure"
+          />
+        </div>
 
         <!-- 图表分页控件 -->
         <div v-if="!loading && displayedItems.length > 0 && figuresTotalPages > 1" class="pagination-container">
@@ -358,6 +355,23 @@ onMounted(async () => {
 
 .content-grid {
   min-height: 300px;
+}
+
+.waterfall-grid {
+  columns: 3;
+  column-gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .waterfall-grid {
+    columns: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .waterfall-grid {
+    columns: 1;
+  }
 }
 
 .grid-col {
