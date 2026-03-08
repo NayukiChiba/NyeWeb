@@ -1,17 +1,16 @@
 <template>
-  <a :href="tool.url" class="tool-card-link" rel="noopener noreferrer" target="_blank">
-    <el-card class="tool-card" shadow="hover">
-      <div class="card-content">
-        <div class="tool-header">
-          <span v-if="tool.icon" class="tool-icon" v-html="tool.icon"></span>
-          <h3 class="tool-title">{{ tool.name }}</h3>
-        </div>
-        <p class="tool-description">{{ tool.description }}</p>
-        <div v-if="tool.category" class="tool-category">
-          <el-tag size="small" type="info" effect="plain" round>{{ tool.category }}</el-tag>
-        </div>
+  <a :href="tool.url" class="tool-link" rel="noopener noreferrer" target="_blank">
+    <div class="glass-card !p-4 flex items-start gap-3 group cursor-pointer">
+      <span v-if="tool.icon" class="tool-icon flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-pink-50 flex items-center justify-center" v-html="tool.icon"></span>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-semibold text-primary group-hover:text-accent transition-colors leading-snug mb-1">{{ tool.name }}</h3>
+        <p class="text-xs text-secondary leading-relaxed line-clamp-2 mb-2">{{ tool.description }}</p>
+        <span v-if="tool.category" class="tag-pill text-[10px]">{{ tool.category }}</span>
       </div>
-    </el-card>
+      <svg class="w-4 h-4 text-secondary/30 group-hover:text-accent transition-colors flex-shrink-0 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+      </svg>
+    </div>
   </a>
 </template>
 
@@ -25,68 +24,22 @@ defineProps({
 </script>
 
 <style scoped>
-.tool-card-link {
+.tool-link {
   text-decoration: none;
   color: inherit;
   display: block;
-  height: 100%;
-}
-
-.tool-card {
-  border-radius: 15px;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  height: 100%;
-}
-
-.tool-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--el-box-shadow-light);
-}
-
-.card-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.tool-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.tool-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
 }
 
 .tool-icon :deep(svg) {
   width: 20px;
   height: 20px;
-  color: var(--el-color-primary);
+  color: #6366f1;
 }
 
-.tool-title {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 0;
-}
-
-.tool-description {
-  font-size: 0.9em;
-  color: var(--el-text-color-secondary);
-  flex-grow: 1;
-  margin-bottom: 15px;
-}
-
-.tool-category {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>
