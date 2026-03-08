@@ -57,7 +57,7 @@ const downloadPdf = () => {
 
 .book-cover {
   width: 100%;
-  height: 180px;
+  height: 240px;
 }
 
 .cover-image {
