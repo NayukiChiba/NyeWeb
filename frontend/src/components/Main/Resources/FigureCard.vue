@@ -60,8 +60,9 @@ const handlePreview = () => {
   position: relative;
   overflow: hidden;
   border-radius: 15px;
-  aspect-ratio: 16 / 10;
   background-color: #f5f7fa;
+  break-inside: avoid;
+  margin-bottom: 16px;
 }
 
 .figure-image {
