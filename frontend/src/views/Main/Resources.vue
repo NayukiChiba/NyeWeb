@@ -185,41 +185,49 @@ const fetchBookTags = async () => {
   }
 };
 
-// 获取图表数据
+// 获取图库数据
 const fetchFigures = async () => {
   loading.value = true;
   try {
-    const params = {
-      page: figuresCurrentPage.value,
-      limit: figuresPageSize.value
-    };
-    
-    // 添加搜索参数
-    if (searchQuery.value.trim()) {
-      params.search = searchQuery.value.trim();
-    }
-    
-    // 添加标签参数
-    if (selectedTags.value.length > 0) {
-      params.tags = selectedTags.value.join(',');
-    }
-
-    const response = await axios.get(`${API_BASE_URL}/figures`, {
-      params: params,
+    const response = await axios.get(`${API_BASE_URL}/gallery`, {
       timeout: 10000,
       headers: {
         'Accept': 'application/json'
       }
     });
 
-    if (response.data && response.data.data) {
-      figuresFromDB.value = response.data.data;
-      figuresTotalItems.value = response.data.pagination.total;
-      figuresTotalPages.value = response.data.pagination.pages;
-      console.log(`Resources: 成功获取 ${figuresFromDB.value.length} 个图表，页码: ${figuresCurrentPage.value}`);
+    if (response.data && Array.isArray(response.data)) {
+      let allFigures = response.data;
+
+      // 搜索过滤
+      if (searchQuery.value.trim()) {
+        const q = searchQuery.value.trim().toLowerCase();
+        allFigures = allFigures.filter(f => f.title && f.title.toLowerCase().includes(q));
+      }
+
+      // 标签过滤
+      if (selectedTags.value.length > 0) {
+        allFigures = allFigures.filter(f =>
+          f.tags && selectedTags.value.some(t => f.tags.includes(t))
+        );
+      }
+
+      // 提取标签
+      const tagSet = new Set();
+      response.data.forEach(f => {
+        if (f.tags) f.tags.forEach(t => tagSet.add(t));
+      });
+      figureTagsFromDB.value = Array.from(tagSet);
+
+      // 前端分页
+      figuresTotalItems.value = allFigures.length;
+      figuresTotalPages.value = Math.ceil(allFigures.length / figuresPageSize.value);
+      const start = (figuresCurrentPage.value - 1) * figuresPageSize.value;
+      figuresFromDB.value = allFigures.slice(start, start + figuresPageSize.value);
+      console.log(`Resources: 成功获取 ${allFigures.length} 个图片`);
     }
   } catch (error) {
-    console.error('Resources: 获取图表数据失败:', error);
+    console.error('Resources: 获取图库数据失败:', error);
     figuresFromDB.value = [];
     figuresTotalItems.value = 0;
     figuresTotalPages.value = 0;
@@ -228,25 +236,7 @@ const fetchFigures = async () => {
   }
 };
 
-// 获取图表标签数据
-const fetchFigureTags = async () => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/figure-tags`, {
-      timeout: 10000,
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-
-    if (response.data) {
-      figureTagsFromDB.value = response.data.tags || [];
-      console.log(`Resources: 成功获取 ${figureTagsFromDB.value.length} 个图表标签`);
-    }
-  } catch (error) {
-    console.error('Resources: 获取图表标签数据失败:', error);
-    figureTagsFromDB.value = [];
-  }
-};
+// fetchFigureTags 不再需要，标签从gallery数据中提取
 
 const allTags = computed(() => {
   if (activeTab.value === 'books') {
