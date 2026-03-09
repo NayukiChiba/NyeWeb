@@ -84,11 +84,37 @@ def _get_article_file_path(slug: str, category: str | None = None) -> str:
 
 
 def _read_article_content(slug: str, category: str | None = None) -> str | None:
-    """从 content/blog/ 读取文章内容"""
+    """从 content/blog/ 读取文章内容，支持fallback搜索"""
+    # 1. 直接路径匹配
     file_path = _get_article_file_path(slug, category)
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
+
+    # 2. Fallback: 在所有子目录中搜索匹配的文件
+    base = settings.content_dir
+    slug_lower = slug.lower().replace("-", "").replace("_", "")
+    # 提取slug中的纯ASCII部分用于匹配英文文件名
+    slug_ascii = re.sub(r"[^a-z0-9]", "", slug_lower)
+    for root, dirs, files in os.walk(base):
+        dirs[:] = [
+            d for d in dirs
+            if not d.startswith(".") and d not in ("__pycache__", "_templates", "_copilot")
+        ]
+        for f in files:
+            if f.endswith(".md"):
+                fname = f[:-3].lower().replace("-", "").replace("_", "")
+                fname_ascii = re.sub(r"[^a-z0-9]", "", fname)
+                # 完全匹配 or ASCII部分匹配 or 互相包含
+                if (fname == slug_lower
+                    or (slug_ascii and fname_ascii and (slug_ascii == fname_ascii or fname_ascii in slug_ascii or slug_ascii in fname_ascii))
+                    or slug_lower in fname or fname in slug_lower):
+                    full_path = os.path.join(root, f)
+                    logger.info("Fallback匹配文章文件: %s -> %s", slug, full_path)
+                    with open(full_path, "r", encoding="utf-8") as fh:
+                        return fh.read()
+
+    logger.warning("未找到文章内容文件: slug=%s, category=%s", slug, category)
     return None
 
 
