@@ -308,12 +308,16 @@ const fetchArticle = async () => {
       const fullPath = categoryPath ? `${categoryPath}/${articleData.slug}` : articleData.slug
 
       try {
-        // 使用 fetch 从 dist 目录获取文章内容
-        const response = await fetch(`/articles/knowledge/${fullPath}.md`)
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+        // 后端API已从content/blog/读取markdown，直接使用返回的content
+        let markdownText = articleData.content
+        if (!markdownText) {
+          console.warn('文章内容为空')
+          articleNotFound.value = true
+          return
         }
-        const markdownText = await response.text()
+
+        // 剥离YAML frontmatter（---开头和---结尾的元数据块）
+        markdownText = markdownText.replace(/^---[\s\S]*?---\s*\n?/, '')
 
         // 渲染Markdown，并传入分类路径用于图片解析
         const env = {articlePath: categoryPath}
