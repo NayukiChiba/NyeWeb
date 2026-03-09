@@ -121,8 +121,6 @@ import ImageCarousel from '@/components/Main/MyInfo/ImageCarousel.vue'
 }
 
 .profile-card-container {
-  position: sticky;
-  top: 80px; /* 80px 是顶栏高度 */
   width: 100%;
 }
 
