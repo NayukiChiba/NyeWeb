@@ -34,13 +34,7 @@ const routes = [
         component: Knowledge
     },
     {
-        path: '/articles/:category+/:slug',
-        name: 'ArticleWithCategory',
-        component: () => import('@/views/Main/Article.vue'),
-        meta: {title: '文章详情'}
-    },
-    {
-        path: '/articles/:slug',
+        path: '/articles/:slug+',
         name: 'Article',
         component: () => import('@/views/Main/Article.vue'),
         meta: {title: '文章详情'}
