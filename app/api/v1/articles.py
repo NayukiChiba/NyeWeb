@@ -34,16 +34,16 @@ def get_all_articles_admin(db: Session = Depends(get_db)):
     return article_service.get_all_articles_admin(db)
 
 
-@router.get("/articles/{category:path}/{article_slug}")
-def get_article_by_category_and_slug(
-    category: str, article_slug: str, db: Session = Depends(get_db)
-):
-    return article_service.get_article_by_category_and_slug(db, category, article_slug)
+@router.post("/articles/sync")
+def sync_articles(db: Session = Depends(get_db)):
+    """手动触发 content/blog/ 同步"""
+    return article_service.sync_articles_from_content(db)
 
 
-@router.get("/articles/{article_slug}")
-def get_article_by_slug(article_slug: str, db: Session = Depends(get_db)):
-    return article_service.get_article_by_slug(db, article_slug)
+@router.get("/articles/{slug:path}")
+def get_article_by_slug(slug: str, db: Session = Depends(get_db)):
+    """根据 slug（文件相对路径）获取文章，如 Knowledge/GitUsage"""
+    return article_service.get_article_by_slug(db, slug)
 
 
 @router.post("/articles")
