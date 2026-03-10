@@ -34,6 +34,18 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     logger.info("NayukiWeb API 启动, version=%s", settings.APP_VERSION)
     logger.info("Dist 目录: %s", settings.dist_dir)
+
+    # 启动时同步 content/blog/ 文章到数据库
+    from app.core.database import SessionLocal
+    from app.services.article import sync_articles_from_content
+    try:
+        db = SessionLocal()
+        result = sync_articles_from_content(db)
+        logger.info("文章同步结果: %s", result)
+        db.close()
+    except Exception as e:
+        logger.error("文章同步失败: %s", e)
+
     yield
     logger.info("NayukiWeb API 关闭")
 
