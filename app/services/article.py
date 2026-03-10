@@ -1,5 +1,5 @@
 """
-文章服务层 — 使用 content/blog/ 目录管理文章内容
+文章服务层 — 以 content/blog/ 目录为核心，自动扫描 frontmatter
 """
 
 import logging
@@ -7,6 +7,7 @@ import os
 import re
 from datetime import datetime
 
+import yaml
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -25,12 +26,42 @@ logger = logging.getLogger("app.services.article")
 settings = get_settings()
 
 
+# ── 工具函数 ─────────────────────────────────────────────
+
+
 def _count_words(text: str) -> int:
     """统计中英文混合字数"""
-    text = re.sub(r"[#*`>\[\]\(\)\-_|!]", "", text)  # 去除 Markdown 符号
+    text = re.sub(r"[#*`>\[\]\(\)\-_|!]", "", text)
     chinese = re.findall(r"[\u4e00-\u9fa5]", text)
     english = re.findall(r"[a-zA-Z]+", text)
     return len(chinese) + len(english)
+
+
+def _parse_frontmatter(content: str) -> tuple[dict, str]:
+    """
+    解析 Markdown 文件的 YAML frontmatter。
+    返回 (frontmatter_dict, body_content)
+    """
+    if not content.startswith("---"):
+        return {}, content
+
+    # 找到第二个 ---
+    end_idx = content.find("---", 3)
+    if end_idx == -1:
+        return {}, content
+
+    yaml_str = content[3:end_idx].strip()
+    body = content[end_idx + 3:].strip()
+
+    try:
+        fm = yaml.safe_load(yaml_str)
+        if not isinstance(fm, dict):
+            fm = {}
+    except yaml.YAMLError as e:
+        logger.warning("YAML 解析失败: %s", e)
+        fm = {}
+
+    return fm, body
 
 
 def _article_to_dict(
@@ -70,52 +101,165 @@ def generate_safe_slug(text: str) -> str:
     return slug or "untitled"
 
 
-def _get_content_path(category: str | None = None) -> str:
-    """获取文章内容目录路径"""
-    base = settings.content_dir
-    if category:
-        return os.path.join(base, category.replace("/", os.sep))
-    return base
+# ── content 目录读取 ──────────────────────────────────────
 
 
-def _get_article_file_path(slug: str, category: str | None = None) -> str:
-    """获取文章 Markdown 文件路径"""
-    return os.path.join(_get_content_path(category), f"{slug}.md")
+def _get_content_file_path(slug: str) -> str:
+    """根据 slug（相对路径）获取文章 Markdown 文件绝对路径"""
+    return os.path.join(settings.content_dir, f"{slug}.md")
 
 
-def _read_article_content(slug: str, category: str | None = None) -> str | None:
-    """从 content/blog/ 读取文章内容，支持fallback搜索"""
-    # 1. 直接路径匹配
-    file_path = _get_article_file_path(slug, category)
+def _read_article_content(slug: str) -> str | None:
+    """从 content/blog/ 读取文章内容"""
+    file_path = _get_content_file_path(slug)
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
+    logger.warning("未找到文章内容文件: %s", file_path)
+    return None
 
-    # 2. Fallback: 在所有子目录中搜索匹配的文件
+
+# ── 同步 content → DB ────────────────────────────────────
+
+
+def sync_articles_from_content(db: Session) -> dict:
+    """
+    扫描 content/blog/ 所有 .md 文件，解析 frontmatter，
+    自动创建或更新数据库中的文章记录。
+
+    slug = 文件相对路径（不含 .md），如 Knowledge/GitUsage
+    """
     base = settings.content_dir
-    slug_lower = slug.lower().replace("-", "").replace("_", "")
-    # 提取slug中的纯ASCII部分用于匹配英文文件名
-    slug_ascii = re.sub(r"[^a-z0-9]", "", slug_lower)
+    if not os.path.exists(base):
+        logger.warning("content 目录不存在: %s", base)
+        return {"synced": 0, "created": 0, "updated": 0, "skipped": 0}
+
+    created = 0
+    updated = 0
+    skipped = 0
+    synced_slugs = []
+
     for root, dirs, files in os.walk(base):
+        # 跳过隐藏目录和特殊目录
         dirs[:] = [
             d for d in dirs
-            if not d.startswith(".") and d not in ("__pycache__", "_templates", "_copilot")
+            if not d.startswith(".")
+            and d not in ("__pycache__", "assets", "_templates", "_copilot")
         ]
-        for f in files:
-            if f.endswith(".md"):
-                fname = f[:-3].lower().replace("-", "").replace("_", "")
-                fname_ascii = re.sub(r"[^a-z0-9]", "", fname)
-                # 完全匹配 or ASCII部分匹配 or 互相包含
-                if (fname == slug_lower
-                    or (slug_ascii and fname_ascii and (slug_ascii == fname_ascii or fname_ascii in slug_ascii or slug_ascii in fname_ascii))
-                    or slug_lower in fname or fname in slug_lower):
-                    full_path = os.path.join(root, f)
-                    logger.info("Fallback匹配文章文件: %s -> %s", slug, full_path)
-                    with open(full_path, "r", encoding="utf-8") as fh:
-                        return fh.read()
 
-    logger.warning("未找到文章内容文件: slug=%s, category=%s", slug, category)
-    return None
+        for filename in files:
+            if not filename.endswith(".md"):
+                continue
+            if filename in ("README.md", "index.md", ".gitkeep"):
+                continue
+            if filename.startswith("."):
+                continue
+
+            file_path = os.path.join(root, filename)
+            rel_path = os.path.relpath(file_path, base)
+            # slug = 相对路径，去掉 .md，使用 / 分隔
+            slug = rel_path.replace(os.sep, "/")[:-3]
+
+            # 读取文件内容
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    raw_content = f.read()
+            except Exception as e:
+                logger.warning("读取文件失败: %s - %s", file_path, e)
+                skipped += 1
+                continue
+
+            # 解析 frontmatter
+            fm, body = _parse_frontmatter(raw_content)
+
+            title = fm.get("title", filename[:-3])
+            date_str = fm.get("date")
+            category = fm.get("category", "")
+            description = fm.get("description", "")
+            image = fm.get("image", "")
+            status_str = fm.get("status", "published")
+            tags = fm.get("tags", [])
+            if isinstance(tags, str):
+                tags = [t.strip() for t in tags.split(",")]
+
+            # 解析日期
+            article_date = None
+            if date_str:
+                if isinstance(date_str, datetime):
+                    article_date = date_str.date()
+                elif isinstance(date_str, str):
+                    try:
+                        article_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    except ValueError:
+                        pass
+                else:
+                    # date_str might be a date object
+                    article_date = date_str
+
+            status = STATUS_TO_INT.get(status_str, 1)
+            word_count = _count_words(body)
+
+            # 查找或创建 DB 记录
+            article = db.query(Article).filter(Article.slug == slug).first()
+
+            if article:
+                # 更新已有记录
+                article.title = title
+                article.category = category
+                article.description = description
+                article.image = image
+                article.word_count = word_count
+                article.status = status
+                if article_date:
+                    article.date = article_date
+                article.updated_at = datetime.now()
+                updated += 1
+            else:
+                # 创建新记录
+                article = Article(
+                    title=title,
+                    slug=slug,
+                    category=category,
+                    description=description,
+                    image=image,
+                    date=article_date or datetime.now().date(),
+                    word_count=word_count,
+                    status=status,
+                    updated_at=datetime.now(),
+                )
+                db.add(article)
+                db.flush()  # 获取 ID
+                created += 1
+
+            # 同步标签
+            if tags:
+                sync_tags(db, article.id, tags, ArticleTag, "article_id")
+
+            synced_slugs.append(slug)
+
+    # 删除 DB 中存在但 content 目录中已不存在的文章
+    all_db_articles = db.query(Article).all()
+    for article in all_db_articles:
+        if article.slug not in synced_slugs:
+            db.query(ArticleTag).filter(
+                ArticleTag.article_id == article.id
+            ).delete()
+            db.delete(article)
+            logger.info("删除不存在的文章: %s", article.slug)
+
+    db.commit()
+
+    total = created + updated
+    logger.info(
+        "文章同步完成: 共 %d 篇 (新增 %d, 更新 %d, 跳过 %d)",
+        total, created, updated, skipped,
+    )
+    return {
+        "synced": total,
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+    }
 
 
 # ── 查询 ──────────────────────────────────────────────────
@@ -139,28 +283,20 @@ def get_all_articles_admin(db: Session) -> list[dict]:
 
 
 def get_article_by_slug(db: Session, slug: str) -> dict:
-    """根据 slug 获取已发布文章 + 内容"""
+    """根据 slug（文件路径）获取已发布文章 + 内容"""
     article = (
         db.query(Article).filter(Article.slug == slug, Article.status == 1).first()
     )
     if not article:
         raise NotFoundError("文章")
     result = _article_to_dict(db, article)
-    result["content"] = _read_article_content(slug, article.category)
-    return result
-
-
-def get_article_by_category_and_slug(db: Session, category: str, slug: str) -> dict:
-    """根据分类和 slug 获取已发布文章 + 内容"""
-    article = (
-        db.query(Article)
-        .filter(Article.category == category, Article.slug == slug, Article.status == 1)
-        .first()
-    )
-    if not article:
-        raise NotFoundError("文章")
-    result = _article_to_dict(db, article)
-    result["content"] = _read_article_content(slug, category)
+    # 读取 content，剥离 frontmatter
+    raw = _read_article_content(slug)
+    if raw:
+        _, body = _parse_frontmatter(raw)
+        result["content"] = body
+    else:
+        result["content"] = None
     return result
 
 
@@ -179,7 +315,6 @@ def scan_physical_categories(db: Session) -> dict:
         return {"categories": [], "total": 0}
 
     for root, dirs, files in os.walk(abs_base_path):
-        # 跳过 Obsidian 和隐藏目录
         dirs[:] = [
             d
             for d in dirs
@@ -205,14 +340,10 @@ def scan_physical_categories(db: Session) -> dict:
 
         articles_info = []
         for md_file in md_files:
-            article_slug = md_file[:-3]
+            slug = f"{category_path}/{md_file[:-3]}"
             article = (
                 db.query(Article)
-                .filter(
-                    Article.slug == article_slug,
-                    Article.category == category_path,
-                    Article.status == 1,
-                )
+                .filter(Article.slug == slug, Article.status == 1)
                 .first()
             )
             if article:
@@ -229,8 +360,8 @@ def scan_physical_categories(db: Session) -> dict:
             else:
                 articles_info.append(
                     {
-                        "slug": article_slug,
-                        "title": article_slug.replace("-", " ").title(),
+                        "slug": slug,
+                        "title": md_file[:-3],
                         "description": None,
                         "date": None,
                     }
@@ -271,14 +402,14 @@ def _save_article_file(
     article: Article, content: str, category: str | None = None
 ) -> None:
     """保存文章 Markdown 文件到 content/blog/"""
-    dir_path = _get_content_path(category)
+    file_path = _get_content_file_path(article.slug)
+    dir_path = os.path.dirname(file_path)
     os.makedirs(dir_path, exist_ok=True)
 
     file_content = content
     if not content.strip().startswith("#"):
         file_content = f"# {article.title}\n\n{content}"
 
-    file_path = os.path.join(dir_path, f"{article.slug}.md")
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(file_content)
     logger.info("保存文章文件: %s", file_path)
@@ -386,7 +517,7 @@ def delete_article(db: Session, article_id: int) -> dict:
     db.query(ArticleTag).filter(ArticleTag.article_id == article_id).delete()
 
     # 删除 content/blog/ 中的文件
-    file_path = _get_article_file_path(article.slug, article.category)
+    file_path = _get_content_file_path(article.slug)
     if os.path.exists(file_path):
         os.remove(file_path)
 
