@@ -266,46 +266,23 @@ const fetchArticle = async () => {
   articleTitle.value = ''
   headings.value = []
 
-  const slug = route.params.slug
+  // slug 是 catch-all 参数，可能是数组
+  const slugParam = route.params.slug
+  const slug = Array.isArray(slugParam) ? slugParam.join('/') : slugParam
   if (!slug) {
     articleNotFound.value = true
     return
   }
 
   try {
-    let articleData = null
-
-    // 检查是否有分类参数
-    if (route.params.category) {
-      // 如果URL包含分类，使用带分类的API
-      const category = Array.isArray(route.params.category)
-          ? route.params.category.join('/')
-          : route.params.category
-
-      const response = await axios.get(`${API_BASE_URL}/articles/${category}/${slug}`, {
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-      articleData = response.data
-    } else {
-      // 如果URL不包含分类，使用普通的API
-      const response = await axios.get(`${API_BASE_URL}/articles/${slug}`, {
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-      articleData = response.data
-    }
+    const response = await axios.get(`${API_BASE_URL}/articles/${slug}`, {
+      timeout: 10000,
+      headers: { 'Accept': 'application/json' }
+    })
+    const articleData = response.data
 
     if (articleData) {
       articleTitle.value = articleData.title
-      const categoryPath = articleData.category
-
-      // 根据分类和slug构建文件路径
-      const fullPath = categoryPath ? `${categoryPath}/${articleData.slug}` : articleData.slug
 
       try {
         // 后端API已从content/blog/读取markdown，直接使用返回的content
@@ -316,11 +293,11 @@ const fetchArticle = async () => {
           return
         }
 
-        // 剥离YAML frontmatter（---开头和---结尾的元数据块）
+        // 备用: 剥离YAML frontmatter（后端已处理，此为安全冗余）
         markdownText = markdownText.replace(/^---[\s\S]*?---\s*\n?/, '')
 
         // 渲染Markdown，并传入分类路径用于图片解析
-        const env = {articlePath: categoryPath}
+        const env = {articlePath: articleData.category}
         articleContent.value = md.render(markdownText, env)
 
         // DOM更新后提取标题、设置复制按钮和滚动监听
