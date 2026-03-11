@@ -38,7 +38,7 @@ onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
       scrolled ? 'bg-white/90 backdrop-blur-xl shadow-lg border border-gray-200/50' : 'bg-transparent'
     ]"
   >
-    <div class="max-w-6xl mx-auto px-6">
+    <div class="max-w-[1400px] mx-auto px-6">
       <div class="flex justify-between items-center h-14">
 
         <!-- Logo -->
@@ -52,7 +52,7 @@ onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
           <router-link v-for="item in [
             {to: '/', label: '首页'},
             {to: '/projects', label: '项目'},
-            {to: '/knowledge', label: '知识'},
+            {to: '/articles', label: '文章'},
             {to: '/diary', label: '日记'},
             {to: '/todo', label: '待办'},
             {to: '/tools', label: '工具'},
@@ -89,7 +89,7 @@ onUnmounted(() => { window.removeEventListener('scroll', handleScroll) })
     <div v-if="isMenuOpen && !isAdminLogin" class="md:hidden border-t border-gray-100 bg-white rounded-b-2xl">
       <div class="px-6 py-4 flex flex-col gap-1">
         <router-link v-for="item in [
-          {to: '/', label: '首页'}, {to: '/projects', label: '项目'}, {to: '/knowledge', label: '知识'},
+          {to: '/', label: '首页'}, {to: '/projects', label: '项目'}, {to: '/articles', label: '文章'},
           {to: '/diary', label: '日记'}, {to: '/todo', label: '待办'}, {to: '/tools', label: '工具'},
           {to: '/resources', label: '资源'}, {to: '/about', label: '关于我'},
         ]" :key="item.to" :to="item.to" @click="closeMenu"
