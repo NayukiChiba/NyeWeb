@@ -15,13 +15,13 @@ import Header from '@/components/Header.vue'
     </div>
 
     <Header/>
-    <main class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 relative z-10">
+    <main class="flex-grow w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 relative z-10">
       <router-view/>
     </main>
 
     <!-- Footer -->
     <footer class="relative z-10 border-t border-gray-100 mt-auto">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <span class="text-sm text-secondary">© 2024 NayukiWeb — Built with curiosity.</span>
           <div class="flex gap-6">
