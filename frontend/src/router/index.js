@@ -29,7 +29,7 @@ const routes = [
         component: AboutMe
     },
     {
-        path: '/knowledge',
+        path: '/articles',
         name: 'Knowledge',
         component: Knowledge
     },
