@@ -267,16 +267,18 @@ const handleFiguresPageChange = (page) => {
 
 // 监听activeTab变化，切换标签时获取对应数据和标签
 watch(activeTab, (newTab) => {
+  // 清空筛选条件
+  selectedTags.value = []
+  searchQuery.value = ''
   if (newTab === 'books') {
-    booksCurrentPage.value = 1;
-    fetchBooks();
-    fetchBookTags(); // 获取书籍标签
+    booksCurrentPage.value = 1
+    fetchBooks()
+    fetchBookTags()
   } else if (newTab === 'gallery') {
-    figuresCurrentPage.value = 1;
-    fetchFigures();
-    fetchFigureTags(); // 获取图表标签
+    figuresCurrentPage.value = 1
+    fetchFigures()
   }
-});
+})
 
 // 监听搜索和标签变化，重新获取数据
 watch([searchQuery, selectedTags], () => {
@@ -298,7 +300,7 @@ onMounted(async () => {
 
 <style scoped>
 .resources-page {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 100px auto 40px;
   padding: 0 20px;
 }
