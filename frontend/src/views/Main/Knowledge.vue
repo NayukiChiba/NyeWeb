@@ -1,7 +1,7 @@
 <template>
   <div class="knowledge-container">
     <div class="header">
-      <h1>知识文章</h1>
+      <h1>文章</h1>
       <p>探索、学习、分享。这里是我关于技术、科学和思考的笔记。</p>
     </div>
     <div v-loading="loading" class="main-content">
@@ -158,7 +158,7 @@ const filteredArticles = computed(() => {
 
 // 分页相关
 const currentPage = ref(1)
-const pageSize = ref(5)
+const pageSize = ref(9)
 
 // 实际显示在页面上的文章
 const displayedArticles = computed(() => {
@@ -210,7 +210,7 @@ onMounted(async () => {
 
 <style scoped>
 .knowledge-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 100px auto 40px; /* 从 padding 改为 margin,与 Resources/Tools 一致 */
   padding: 0 20px; /* 只保留左右 padding */
 }
@@ -238,7 +238,7 @@ onMounted(async () => {
 }
 
 .timeline-sidebar {
-  width: 280px;
+  width: 220px;
   flex-shrink: 0;
   position: sticky;
   top: 100px;
@@ -261,7 +261,7 @@ onMounted(async () => {
 }
 
 .tags-sidebar {
-  width: 300px;
+  width: 240px;
   flex-shrink: 0;
   position: sticky;
   top: 100px;
