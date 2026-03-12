@@ -2,7 +2,7 @@
   <div class="home-container">
     <div class="left-column">
       <ProfileCard class="profile-card-container"/>
-      <ImageCarousel class="image-carousel-container"/>
+      <ImageCarousel v-if="hasImages" class="image-carousel-container"/>
     </div>
     <el-card class="intro-card">
 <!-- 英雄区域 -->
@@ -95,15 +95,28 @@
 </template>
 
 <script setup>
+import {onMounted, ref} from 'vue'
+import axios from 'axios'
 import ProfileCard from '@/components/Main/Home/ProfileCard.vue'
 import ImageCarousel from '@/components/Main/MyInfo/ImageCarousel.vue'
+
+const hasImages = ref(false)
+
+onMounted(async () => {
+  try {
+    const response = await axios.get('/api/favorite-images', { timeout: 5000 })
+    hasImages.value = response.data && Array.isArray(response.data) && response.data.length > 0
+  } catch (e) {
+    hasImages.value = false
+  }
+})
 </script>
 
 <style scoped>
 .home-container {
   padding-top: 80px; /* 为固定的顶栏留出空间 */
   padding-bottom: 40px;
-  max-width: 1280px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   align-items: flex-start;
