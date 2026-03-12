@@ -173,7 +173,7 @@ onMounted(async () => {
 
 <style scoped>
 .projects-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 100px auto 40px;
   padding: 0 20px; /* 从 padding: 20px 改为 0 20px */
 }
@@ -201,7 +201,7 @@ onMounted(async () => {
 }
 
 .timeline-sidebar {
-  flex: 0 0 280px;
+  flex: 0 0 220px;
 }
 
 .projects-main {
@@ -210,7 +210,7 @@ onMounted(async () => {
 }
 
 .tags-sidebar {
-  flex: 0 0 280px;
+  flex: 0 0 220px;
 }
 
 .projects-grid {
