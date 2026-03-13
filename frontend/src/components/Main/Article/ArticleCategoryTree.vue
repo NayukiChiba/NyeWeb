@@ -188,6 +188,11 @@ const handleNodeClick = (data) => {
     currentKey.value = data.path
     if (treeRef.value) {
       treeRef.value.setCurrentKey(data.path)
+      // 自动展开/折叠文件夹
+      const node = treeRef.value.getNode(data.path)
+      if (node) {
+        node.expanded = !node.expanded
+      }
     }
     emit('category-selected', data.path)
   }
