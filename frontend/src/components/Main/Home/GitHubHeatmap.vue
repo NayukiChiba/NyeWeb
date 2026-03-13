@@ -3,12 +3,12 @@
     <div class="flex justify-between items-center mb-4">
       <h3 class="font-bold text-base text-primary tracking-tight">GitHub 活动</h3>
     </div>
-    <div class="github-stats-container">
+    <div class="github-chart-container">
       <img
-        src="https://github-cards.yumeko.site/api/cards/stats?username=NayukiChiba&theme=github"
-        alt="NayukiChiba's GitHub Stats"
+        src="https://activity.yumeko.site/graph?username=NayukiChiba&theme=xcode&bg_color=FF000000&color=000000&hide_border=true"
+        alt="NayukiChiba's GitHub Contribution Graph"
         loading="lazy"
-        class="stats-image"
+        class="chart-image"
       />
     </div>
   </div>
@@ -18,35 +18,31 @@
 </script>
 
 <style scoped>
-.github-stats-container {
+.github-chart-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  height: 160px;
+  overflow-x: auto;
+  padding: 8px 0;
   transition: opacity 0.3s ease;
 }
 
-.github-stats-container:hover {
+.github-chart-container:hover {
   opacity: 0.9;
 }
 
-.stats-image {
+.chart-image {
   max-width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
 }
 
 @media (max-width: 767px) {
-  .github-stats-container {
-    height: 140px;
+  .github-chart-container {
     overflow-x: auto;
   }
 
-  .stats-image {
-    height: 100%;
-    width: auto;
-    object-fit: contain;
+  .chart-image {
+    min-width: 600px;
   }
 }
 </style>
