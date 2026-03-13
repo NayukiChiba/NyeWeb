@@ -7,7 +7,7 @@
       </h3>
       <!-- Summary -->
       <p class="text-secondary text-sm leading-relaxed line-clamp-2 mb-4 flex-grow">
-        {{ article.summary }}
+        {{ article.description }}
       </p>
       <!-- Footer -->
       <div class="pt-3 border-t border-gray-100 flex justify-between items-center mt-auto">
