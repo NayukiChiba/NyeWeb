@@ -2,7 +2,7 @@
 
 一个基于 FastAPI + Vue.js 的全栈Web应用，包含个人作品展示、文章管理、工具资源等功能。
 
-[项目链接]:https://github.com/NayeyYe/NayukiWeb.git
+[项目链接]:https://github.com/NayukiChiba/NayukiWeb.git
 
 
 ## 🚀 技术栈
