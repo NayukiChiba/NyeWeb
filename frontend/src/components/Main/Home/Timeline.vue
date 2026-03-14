@@ -98,7 +98,7 @@ const fetchGitHistory = async () => {
 
 const fetchFromGitHub = async () => {
   try {
-    const response = await axios.get('https://api.github.com/users/NayeyYe/events/public', {
+    const response = await axios.get('https://api.github.com/users/NayukiChiba/events/public', {
       params: { per_page: 30 },
       timeout: 10000
     })
