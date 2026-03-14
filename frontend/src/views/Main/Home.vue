@@ -36,11 +36,33 @@
         
         <GitHubHeatmap class="w-full hidden sm:block"/>
         
+        <!-- Latest Diary -->
+        <section v-if="latestDiary">
+          <div class="flex justify-between items-end mb-6">
+            <h2 class="section-title">最新日记</h2>
+            <router-link class="text-accent hover:text-accent/80 font-medium text-sm transition-colors" to="/diary">查看全部 →</router-link>
+          </div>
+          
+          <div class="glass-card">
+            <div class="flex flex-wrap gap-3 text-sm text-secondary mb-4">
+              <span class="tag-pill">📅 {{ formatDiaryDate(latestDiary.date) }}</span>
+              <span v-if="latestDiary.weather" class="tag-pill">{{ weatherEmoji(latestDiary.weather) }} {{ latestDiary.weather }}</span>
+              <span class="tag-pill">{{ moodEmoji(latestDiary.mood) }} {{ latestDiary.mood || 'neutral' }}</span>
+            </div>
+            <p class="text-primary leading-relaxed whitespace-pre-wrap max-h-32 overflow-hidden text-ellipsis m-0">
+              {{ latestDiary.content }}
+            </p>
+            <div v-if="latestDiary.images && latestDiary.images.length > 0" class="flex gap-2 mt-4 overflow-x-auto pb-2 snap-x">
+              <img v-for="(img, idx) in latestDiary.images" :key="idx" :src="img" alt="日记附图" loading="lazy" class="h-24 w-auto rounded-xl object-cover border border-gray-200 shadow-sm snap-start shrink-0" />
+            </div>
+          </div>
+        </section>
+
         <!-- Recent Articles -->
         <section>
           <div class="flex justify-between items-end mb-6">
             <h2 class="section-title">最近文章</h2>
-            <router-link class="text-accent hover:text-accent/80 font-medium text-sm transition-colors" to="/knowledge">查看全部 →</router-link>
+            <router-link class="text-accent hover:text-accent/80 font-medium text-sm transition-colors" to="/articles">查看全部 →</router-link>
           </div>
           <div v-loading="articlesLoading" class="flex flex-col gap-4">
             <ArticleCard
@@ -70,28 +92,6 @@
             <div v-if="!projectsLoading && recentProjects.length === 0" class="text-center py-12 text-secondary">
               <p class="text-4xl mb-2">🚀</p>
               <p>暂无项目</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Latest Diary -->
-        <section v-if="latestDiary">
-          <div class="flex justify-between items-end mb-6">
-            <h2 class="section-title">最新日记</h2>
-            <router-link class="text-accent hover:text-accent/80 font-medium text-sm transition-colors" to="/diary">查看全部 →</router-link>
-          </div>
-          
-          <div class="glass-card">
-            <div class="flex flex-wrap gap-3 text-sm text-secondary mb-4">
-              <span class="tag-pill">📅 {{ formatDiaryDate(latestDiary.date) }}</span>
-              <span v-if="latestDiary.weather" class="tag-pill">{{ weatherEmoji(latestDiary.weather) }} {{ latestDiary.weather }}</span>
-              <span class="tag-pill">{{ moodEmoji(latestDiary.mood) }} {{ latestDiary.mood || 'neutral' }}</span>
-            </div>
-            <p class="text-primary leading-relaxed whitespace-pre-wrap max-h-32 overflow-hidden text-ellipsis m-0">
-              {{ latestDiary.content }}
-            </p>
-            <div v-if="latestDiary.images && latestDiary.images.length > 0" class="flex gap-2 mt-4 overflow-x-auto pb-2 snap-x">
-              <img v-for="(img, idx) in latestDiary.images" :key="idx" :src="img" alt="日记附图" loading="lazy" class="h-24 w-auto rounded-xl object-cover border border-gray-200 shadow-sm snap-start shrink-0" />
             </div>
           </div>
         </section>
