@@ -64,7 +64,7 @@ def get_project_by_id(db: Session, project_id: int) -> dict:
 
 
 def get_all_project_tags(db: Session) -> dict:
-    return get_all_tags_with_counts(db, Project, ProjectTag, "project_id")
+    return get_all_tags_with_counts(db, Project, ProjectTag, "project_id", published_only=False)
 
 
 # ── 写入 ──
