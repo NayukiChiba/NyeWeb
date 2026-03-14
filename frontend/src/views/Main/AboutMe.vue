@@ -73,10 +73,10 @@
       <div class="contact-section">
         <h2>联系我</h2>
         <p>你可以在以下平台找到我：</p>
-        <a href="https://github.com/NayeyYe" target="_blank" style="text-decoration: none;">
+        <a href="https://github.com/NayukiChiba" target="_blank" style="text-decoration: none;">
           <el-button plain type="primary">GitHub</el-button>
         </a>
-        <a href="https://x.com/NayeyYeX" target="_blank" style="text-decoration: none;">
+        <a href="https://x.com/NayukiChiba" target="_blank" style="text-decoration: none;">
           <el-button plain type="success">X</el-button>
         </a>
         <a href="https://space.bilibili.com/68134624?spm_id_from=333.1007.0.0" target="_blank" style="text-decoration: none;">
@@ -85,7 +85,7 @@
         <a href="https://blog.csdn.net/2302_77222155?spm=1000.2115.3001.5343" target="_blank" style="text-decoration: none;">
           <el-button plain type="warning">CSDN</el-button>
         </a>
-        <a href="https://gitee.com/NayeyYe" target="_blank" style="text-decoration: none;">
+        <a href="https://gitee.com/NayukiChiba" target="_blank" style="text-decoration: none;">
           <el-button plain type="danger">Gitee</el-button>
         </a>
         <p style="margin-top: 15px;">个人网站: <a href="https://nyeweb.fun" target="_blank">nyeweb.fun</a></p>
