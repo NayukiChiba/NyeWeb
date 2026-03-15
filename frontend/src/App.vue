@@ -25,8 +25,8 @@ import Header from '@/components/Header.vue'
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <span class="text-sm text-secondary">© 2024 NayukiWeb — Built with curiosity.</span>
           <div class="flex gap-6">
-            <a href="https://github.com/NayeyYe" target="_blank" class="text-secondary hover:text-accent transition-colors text-sm">GitHub</a>
-            <a href="mailto:NayeyYe@163.com" class="text-secondary hover:text-accent transition-colors text-sm">Email</a>
+            <a href="https://github.com/NayukiChiba" target="_blank" class="text-secondary hover:text-accent transition-colors text-sm">GitHub</a>
+            <a href="mailto:NayukiChiba@163.com" class="text-secondary hover:text-accent transition-colors text-sm">Email</a>
           </div>
         </div>
       </div>
