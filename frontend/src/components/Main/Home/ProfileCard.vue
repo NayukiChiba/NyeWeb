@@ -28,7 +28,7 @@
       </p>
       <p class="flex items-center gap-2">
         <span class="text-primary/40 text-xs">✉️</span>
-        <a href="mailto:Nayey.Ye@outlook.com" class="text-primary hover:text-accent transition-colors font-medium">NayeyYe@163.com</a>
+        <a href="mailto:NayeyYe@163.com" class="text-primary hover:text-accent transition-colors font-medium">NayeyYe@163.com</a>
       </p>
     </div>
   </div>
@@ -40,8 +40,8 @@ import csdnIcon from '/csdn.svg'
 import twitterIcon from '/twitter.svg'
 
 const socialLinks = [
-  { url: 'https://github.com/NayeyYe', icon: githubIcon, title: 'GitHub' },
+  { url: 'https://github.com/NayukiChiba', icon: githubIcon, title: 'GitHub' },
   { url: 'https://blog.csdn.net/2302_77222155?type=blog', icon: csdnIcon, title: 'CSDN' },
-  { url: 'https://x.com/NayeyYeX', icon: twitterIcon, title: 'Twitter' },
+  { url: 'https://x.com/NayukiChiba', icon: twitterIcon, title: 'Twitter' },
 ]
 </script>
