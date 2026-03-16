@@ -1,372 +1,107 @@
 <template>
-  <div class="resource-management">
-    <!-- Tab切换 -->
-    <el-tabs v-model="activeTab" class="resource-tabs">
-      <el-tab-pane label="图书管理" name="books">
-        <!-- 图书操作栏 -->
-        <div class="action-bar">
-          <div class="action-buttons">
-            <el-button type="primary" @click="showUploadBookDialog = true">上传图书</el-button>
-            <el-button :icon="Refresh" circle @click="refreshBooks"/>
+  <div class="admin-page">
+    <div class="admin-header">
+      <h2 class="admin-title">资源管理</h2>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6">
+      <button :class="['px-4 py-2 rounded-xl text-sm font-medium transition-all', activeTab === 'books' ? 'bg-accent text-white shadow-sm' : 'bg-white text-secondary border border-gray-200 hover:border-accent/30']" @click="activeTab = 'books'">📚 图书管理</button>
+      <button :class="['px-4 py-2 rounded-xl text-sm font-medium transition-all', activeTab === 'figures' ? 'bg-accent text-white shadow-sm' : 'bg-white text-secondary border border-gray-200 hover:border-accent/30']" @click="activeTab = 'figures'">🖼️ 图片管理</button>
+    </div>
+
+    <!-- Books Tab -->
+    <template v-if="activeTab === 'books'">
+      <div class="flex gap-2 mb-4">
+        <el-button type="primary" @click="showUploadBookDialog = true">上传图书</el-button>
+        <el-button :icon="Refresh" circle @click="refreshBooks"/>
+      </div>
+      <div class="admin-filter">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-primary">筛选</span>
+          <el-button link size="small" @click="resetBookFilters">重置</el-button>
+        </div>
+        <div class="flex flex-wrap gap-4 items-center">
+          <el-select v-model="bookFilter.tags" :multiple-limit="3" allow-create filterable multiple placeholder="标签" style="width: 240px"><el-option v-for="t in allBookTags" :key="t" :label="t" :value="t"/></el-select>
+          <el-input v-model="bookFilter.title" clearable placeholder="标题" style="width: 180px"/>
+          <el-select v-model="bookFilter.status" placeholder="状态" style="width: 110px"><el-option label="全部" value=""/><el-option label="已发布" value="published"/><el-option label="草稿" value="draft"/><el-option label="已回收" value="recycled"/></el-select>
+        </div>
+      </div>
+      <p class="text-xs text-secondary/60 mb-4">共 {{ filteredBooks.length }} 本图书</p>
+      <div v-if="paginatedBooks.length" class="admin-grid">
+        <div v-for="b in paginatedBooks" :key="b.id" class="admin-card">
+          <div class="flex items-start justify-between mb-2">
+            <h3 class="font-bold text-sm text-primary truncate flex-1 mr-2">{{ b.title }}</h3>
+            <span :class="['status-badge', b.status]">{{ statusText(b.status) }}</span>
+          </div>
+          <p v-if="b.description" class="text-xs text-secondary line-clamp-2 mb-2">{{ b.description }}</p>
+          <p v-if="b.filename" class="text-xs text-secondary/50 font-mono mb-2">{{ b.filename }}</p>
+          <div v-if="b.tags?.length" class="flex flex-wrap gap-1 mb-3"><span v-for="t in b.tags.slice(0, 3)" :key="t" class="tag-pill text-[11px]">{{ t }}</span></div>
+          <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+            <el-select :model-value="b.status" size="small" style="width: 90px" @change="(v) => updateBookStatus(b, v)"><el-option label="草稿" value="draft"/><el-option label="已发布" value="published"/><el-option label="已回收" value="recycled"/></el-select>
+            <div class="flex gap-2">
+              <el-button size="small" @click="handleEditBook(b)">编辑</el-button>
+              <el-button size="small" type="danger" @click="deleteBook(b)">删除</el-button>
+            </div>
           </div>
         </div>
+      </div>
+      <div v-else class="text-center py-12 text-secondary/60"><p class="text-lg mb-1">📚</p><p class="text-sm">暂无图书</p></div>
+      <div v-if="filteredBooks.length > pageSize" class="flex justify-center mt-6"><el-pagination v-model:current-page="bookPage" :page-size="pageSize" :total="filteredBooks.length" background layout="prev, pager, next"/></div>
+    </template>
 
-        <!-- 图书筛选区域 -->
-        <div class="filter-section">
-          <el-row :gutter="20">
-            <el-col :span="24">
-              <el-card class="filter-card" shadow="never">
-                <template #header>
-                  <div class="filter-header">
-                    <span>筛选条件</span>
-                    <el-button class="reset-link-btn" link @click="resetBookFilters">重置</el-button>
-                  </div>
-                </template>
-                <div class="filter-controls">
-                  <!-- 标签筛选独立一行 -->
-                  <div class="filter-row tag-row">
-                    <div class="filter-item">
-                      <label>标签筛选：</label>
-                      <el-select
-                          v-model="bookFilterForm.tags"
-                          :multiple-limit="3"
-                          allow-create
-                          filterable
-                          multiple
-                          placeholder="选择或输入标签（最多3个）"
-                          size="default"
-                          style="width: 350px"
-                      >
-                        <el-option
-                            v-for="tag in allBookTags"
-                            :key="tag"
-                            :label="tag"
-                            :value="tag"
-                        />
-                      </el-select>
-                    </div>
-                  </div>
-                  <!-- 其他筛选条件 -->
-                  <div class="filter-row">
-                    <div class="filter-item">
-                      <label>标题搜索：</label>
-                      <el-input
-                          v-model="bookFilterForm.title"
-                          clearable
-                          placeholder="输入书籍标题关键字"
-                          style="width: 250px"
-                      />
-                    </div>
-                    <div class="filter-item">
-                      <label>状态筛选：</label>
-                      <el-select v-model="bookFilterForm.status" placeholder="选择状态" style="width: 140px">
-                        <el-option label="全部" value=""/>
-                        <el-option label="已发布" value="published"/>
-                        <el-option label="草稿" value="draft"/>
-                        <el-option label="已回收" value="recycled"/>
-                      </el-select>
-                    </div>
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
+    <!-- Figures Tab -->
+    <template v-if="activeTab === 'figures'">
+      <div class="flex gap-2 mb-4">
+        <el-button type="primary" @click="showUploadFigureDialog = true">上传图片</el-button>
+        <el-button :icon="Refresh" circle @click="refreshFigures"/>
+      </div>
+      <div class="admin-filter">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-primary">筛选</span>
+          <el-button link size="small" @click="resetFigureFilters">重置</el-button>
         </div>
-
-        <!-- 图书列表 -->
-        <div class="resource-list">
-          <el-card shadow="never">
-            <template #header>
-              <div class="list-header">
-                <span>图书列表</span>
-                <span class="resource-count">共 {{ filteredBooks.length }} 本图书</span>
-              </div>
-            </template>
-            <el-table
-                :data="paginatedBooks"
-                :header-cell-style="{ background: '#fafafa', color: '#333', fontWeight: '600' }"
-                class="resource-table"
-                empty-text="暂无图书数据"
-                stripe
-            >
-              <el-table-column label="图书标题" min-width="200" prop="title" show-overflow-tooltip>
-                <template #default="scope">
-                  <div class="resource-title">{{ scope.row.title }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column label="文件名" min-width="150" prop="filename" show-overflow-tooltip>
-                <template #default="scope">
-                  <div class="resource-filename">{{ scope.row.filename || '暂无文件' }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column label="图书描述" min-width="200" prop="description" show-overflow-tooltip>
-                <template #default="scope">
-                  <div class="resource-description">{{ scope.row.description || '暂无描述' }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column label="标签" min-width="150" prop="tags" show-overflow-tooltip>
-                <template #default="scope">
-                  <div v-if="scope.row.tags && scope.row.tags.length > 0" class="resource-tags">
-                    <el-tag
-                        v-for="tag in scope.row.tags.slice(0, 3)"
-                        :key="tag"
-                        class="tag-item"
-                        size="small"
-                        type="info"
-                    >
-                      {{ tag }}
-                    </el-tag>
-                    <span v-if="scope.row.tags.length > 3" class="more-tags">+{{ scope.row.tags.length - 3 }}</span>
-                  </div>
-                  <span v-else class="no-tags">暂无标签</span>
-                </template>
-              </el-table-column>
-              <el-table-column align="center" label="状态" min-width="120" prop="status">
-                <template #default="scope">
-                  <el-select
-                      :model-value="scope.row.status"
-                      size="small"
-                      style="width: 100px"
-                      @change="(value) => updateBookStatus(scope.row, value)"
-                  >
-                    <el-option label="草稿" value="draft"/>
-                    <el-option label="已发布" value="published"/>
-                    <el-option label="已回收" value="recycled"/>
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column align="center" label="操作" min-width="160">
-                <template #default="scope">
-                  <div class="action-buttons-table">
-                    <el-button size="small" type="primary" @click="handleEditBook(scope.row)">编辑</el-button>
-                    <el-button
-                        size="small"
-                        :type="scope.row.status === 'published' ? 'success' : 'info'"
-                        :disabled="scope.row.status !== 'published'"
-                        @click="visitBook(scope.row)"
-                    >
-                      访问
-                    </el-button>
-                    <el-button size="small" type="danger" @click="deleteBook(scope.row)">删除</el-button>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-            
-            <!-- 添加图书分页组件 -->
-            <div v-if="filteredBooks.length > pageSize" class="pagination-wrapper">
-              <el-pagination
-                  v-model:current-page="bookCurrentPage"
-                  :page-size="pageSize"
-                  :total="filteredBooks.length"
-                  background
-                  layout="prev, pager, next, jumper, total"
-                  @current-change="handleBookPageChange"
-              />
+        <div class="flex flex-wrap gap-4 items-center">
+          <el-select v-model="figureFilter.tags" :multiple-limit="3" allow-create filterable multiple placeholder="标签" style="width: 240px"><el-option v-for="t in allFigureTags" :key="t" :label="t" :value="t"/></el-select>
+          <el-input v-model="figureFilter.title" clearable placeholder="标题" style="width: 180px"/>
+          <el-select v-model="figureFilter.status" placeholder="状态" style="width: 110px"><el-option label="全部" value=""/><el-option label="已发布" value="published"/><el-option label="草稿" value="draft"/><el-option label="已回收" value="recycled"/></el-select>
+        </div>
+      </div>
+      <p class="text-xs text-secondary/60 mb-4">共 {{ filteredFigures.length }} 张图片</p>
+      <div v-if="paginatedFigures.length" class="admin-grid">
+        <div v-for="f in paginatedFigures" :key="f.id" class="admin-card">
+          <div class="flex items-start justify-between mb-2">
+            <h3 class="font-bold text-sm text-primary truncate flex-1 mr-2">{{ f.title }}</h3>
+            <span :class="['status-badge', f.status]">{{ statusText(f.status) }}</span>
+          </div>
+          <p v-if="f.description" class="text-xs text-secondary line-clamp-2 mb-2">{{ f.description }}</p>
+          <a v-if="f.url" :href="f.url" target="_blank" class="text-xs text-accent hover:underline truncate block mb-2">{{ f.url }}</a>
+          <div v-if="f.tags?.length" class="flex flex-wrap gap-1 mb-3"><span v-for="t in f.tags.slice(0, 3)" :key="t" class="tag-pill text-[11px]">{{ t }}</span></div>
+          <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+            <el-select :model-value="f.status" size="small" style="width: 90px" @change="(v) => updateFigureStatus(f, v)"><el-option label="草稿" value="draft"/><el-option label="已发布" value="published"/><el-option label="已回收" value="recycled"/></el-select>
+            <div class="flex gap-2">
+              <el-button size="small" @click="handleEditFigure(f)">编辑</el-button>
+              <el-button size="small" type="danger" @click="deleteFigure(f)">删除</el-button>
             </div>
-          </el-card>
-        </div>
-      </el-tab-pane>
-
-      <el-tab-pane label="图片管理" name="figures">
-        <!-- 图片操作栏 -->
-        <div class="action-bar">
-          <div class="action-buttons">
-            <el-button type="primary" @click="showUploadFigureDialog = true">上传图片</el-button>
-            <el-button :icon="Refresh" circle @click="refreshFigures"/>
           </div>
         </div>
+      </div>
+      <div v-else class="text-center py-12 text-secondary/60"><p class="text-lg mb-1">🖼️</p><p class="text-sm">暂无图片</p></div>
+      <div v-if="filteredFigures.length > pageSize" class="flex justify-center mt-6"><el-pagination v-model:current-page="figurePage" :page-size="pageSize" :total="filteredFigures.length" background layout="prev, pager, next"/></div>
+    </template>
 
-        <!-- 图片筛选区域 -->
-        <div class="filter-section">
-          <el-row :gutter="20">
-            <el-col :span="24">
-              <el-card class="filter-card" shadow="never">
-                <template #header>
-                  <div class="filter-header">
-                    <span>筛选条件</span>
-                    <el-button class="reset-link-btn" link @click="resetFigureFilters">重置</el-button>
-                  </div>
-                </template>
-                <div class="filter-controls">
-                  <!-- 标签筛选独立一行 -->
-                  <div class="filter-row tag-row">
-                    <div class="filter-item">
-                      <label>标签筛选：</label>
-                      <el-select
-                          v-model="figureFilterForm.tags"
-                          :multiple-limit="3"
-                          allow-create
-                          filterable
-                          multiple
-                          placeholder="选择或输入标签（最多3个）"
-                          size="default"
-                          style="width: 350px"
-                      >
-                        <el-option
-                            v-for="tag in allFigureTags"
-                            :key="tag"
-                            :label="tag"
-                            :value="tag"
-                        />
-                      </el-select>
-                    </div>
-                  </div>
-                  <!-- 其他筛选条件 -->
-                  <div class="filter-row">
-                    <div class="filter-item">
-                      <label>标题搜索：</label>
-                      <el-input
-                          v-model="figureFilterForm.title"
-                          clearable
-                          placeholder="输入图片标题关键字"
-                          style="width: 250px"
-                      />
-                    </div>
-                    <div class="filter-item">
-                      <label>状态筛选：</label>
-                      <el-select v-model="figureFilterForm.status" placeholder="选择状态" style="width: 140px">
-                        <el-option label="全部" value=""/>
-                        <el-option label="已发布" value="published"/>
-                        <el-option label="草稿" value="draft"/>
-                        <el-option label="已回收" value="recycled"/>
-                      </el-select>
-                    </div>
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </div>
-
-        <!-- 图片列表 -->
-        <div class="resource-list">
-          <el-card shadow="never">
-            <template #header>
-              <div class="list-header">
-                <span>图片列表</span>
-                <span class="resource-count">共 {{ filteredFigures.length }} 张图片</span>
-              </div>
-            </template>
-            <el-table
-                :data="paginatedFigures"
-                :header-cell-style="{ background: '#fafafa', color: '#333', fontWeight: '600' }"
-                class="resource-table"
-                empty-text="暂无图片数据"
-                stripe
-            >
-              <el-table-column label="图片标题" min-width="200" prop="title" show-overflow-tooltip>
-                <template #default="scope">
-                  <div class="resource-title">{{ scope.row.title }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column label="图床链接" min-width="200" prop="url" show-overflow-tooltip>
-                <template #default="scope">
-                  <div class="resource-filename">{{ scope.row.url || '暂无链接' }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column label="图片描述" min-width="200" prop="description" show-overflow-tooltip>
-                <template #default="scope">
-                  <div class="resource-description">{{ scope.row.description || '暂无描述' }}</div>
-                </template>
-              </el-table-column>
-              <el-table-column label="标签" min-width="150" prop="tags" show-overflow-tooltip>
-                <template #default="scope">
-                  <div v-if="scope.row.tags && scope.row.tags.length > 0" class="resource-tags">
-                    <el-tag
-                        v-for="tag in scope.row.tags.slice(0, 3)"
-                        :key="tag"
-                        class="tag-item"
-                        size="small"
-                        type="info"
-                    >
-                      {{ tag }}
-                    </el-tag>
-                    <span v-if="scope.row.tags.length > 3" class="more-tags">+{{ scope.row.tags.length - 3 }}</span>
-                  </div>
-                  <span v-else class="no-tags">暂无标签</span>
-                </template>
-              </el-table-column>
-              <el-table-column align="center" label="状态" min-width="120" prop="status">
-                <template #default="scope">
-                  <el-select
-                      :model-value="scope.row.status"
-                      size="small"
-                      style="width: 100px"
-                      @change="(value) => updateFigureStatus(scope.row, value)"
-                  >
-                    <el-option label="草稿" value="draft"/>
-                    <el-option label="已发布" value="published"/>
-                    <el-option label="已回收" value="recycled"/>
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column align="center" label="操作" min-width="160">
-                <template #default="scope">
-                  <div class="action-buttons-table">
-                    <el-button size="small" type="primary" @click="handleEditFigure(scope.row)">编辑</el-button>
-                    <el-button
-                        :disabled="!scope.row.url"
-                        size="small"
-                        type="success"
-                        @click="openFigureInNewTab(scope.row.url)"
-                    >
-                      访问
-                    </el-button>
-                    <el-button size="small" type="danger" @click="deleteFigure(scope.row)">删除</el-button>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-            
-            <!-- 添加图片分页组件 -->
-            <div v-if="filteredFigures.length > pageSize" class="pagination-wrapper">
-              <el-pagination
-                  v-model:current-page="figureCurrentPage"
-                  :page-size="pageSize"
-                  :total="filteredFigures.length"
-                  background
-                  layout="prev, pager, next, jumper, total"
-                  @current-change="handleFigurePageChange"
-              />
-            </div>
-          </el-card>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
-
-    <!-- 图书上传对话框 -->
-    <UploadBookDialog
-        v-model="showUploadBookDialog"
-        @upload-success="handleBookUploadSuccess"
-    />
-
-    <!-- 图书编辑对话框 -->
-    <EditBookDialog
-        v-model="showEditBookDialog"
-        :book="currentEditBook"
-        @save-success="handleBookEditSuccess"
-    />
-
-    <!-- 图片上传对话框 -->
-    <UploadFigureDialog
-        v-model="showUploadFigureDialog"
-        @upload-success="handleFigureUploadSuccess"
-    />
-
-    <!-- 图片编辑对话框 -->
-    <EditFigureDialog
-        v-model="showEditFigureDialog"
-        :figure="currentEditFigure"
-        @save-success="handleFigureEditSuccess"
-    />
+    <!-- Dialogs (reusing existing) -->
+    <UploadBookDialog v-model="showUploadBookDialog" @upload-success="refreshBooks"/>
+    <EditBookDialog v-model="showEditBookDialog" :book="currentEditBook" @save-success="refreshBooks"/>
+    <UploadFigureDialog v-model="showUploadFigureDialog" @upload-success="refreshFigures"/>
+    <EditFigureDialog v-model="showEditFigureDialog" :figure="currentEditFigure" @save-success="refreshFigures"/>
   </div>
 </template>
 
 <script setup>
-import {computed, onMounted, reactive, ref, watch} from 'vue'
-import {ElMessage, ElMessageBox} from 'element-plus'
-import {Refresh} from '@element-plus/icons-vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Refresh } from '@element-plus/icons-vue'
 import axios from 'axios'
 import UploadBookDialog from '@/components/Admin/ResourceManagement/UploadBookDialog.vue'
 import EditBookDialog from '@/components/Admin/ResourceManagement/EditBookDialog.vue'
@@ -374,632 +109,63 @@ import UploadFigureDialog from '@/components/Admin/ResourceManagement/UploadFigu
 import EditFigureDialog from '@/components/Admin/ResourceManagement/EditFigureDialog.vue'
 
 const activeTab = ref('books')
+const pageSize = 12
+
+// Books
 const books = ref([])
-const figures = ref([])
 const allBookTags = ref([])
-const allFigureTags = ref([])
+const bookPage = ref(1)
+const bookFilter = reactive({ tags: [], title: '', status: '' })
 const showUploadBookDialog = ref(false)
 const showEditBookDialog = ref(false)
 const currentEditBook = ref(null)
+
+const filteredBooks = computed(() => {
+  let arr = books.value
+  if (bookFilter.tags.length) arr = arr.filter(b => b.tags?.length && bookFilter.tags.every(t => b.tags.includes(t)))
+  if (bookFilter.title) arr = arr.filter(b => b.title?.includes(bookFilter.title))
+  if (bookFilter.status) arr = arr.filter(b => b.status === bookFilter.status)
+  return arr
+})
+const paginatedBooks = computed(() => filteredBooks.value.slice((bookPage.value - 1) * pageSize, bookPage.value * pageSize))
+watch([() => bookFilter.tags, () => bookFilter.title, () => bookFilter.status], () => { bookPage.value = 1 }, { deep: true })
+const resetBookFilters = () => { bookFilter.tags = []; bookFilter.title = ''; bookFilter.status = ''; bookPage.value = 1 }
+
+const fetchBooks = async () => { try { books.value = (await axios.get('/api/admin/books')).data } catch { ElMessage.error('获取图书失败') } }
+const fetchBookTags = async () => { try { allBookTags.value = (await axios.get('/api/book-tags')).data?.tags || [] } catch {} }
+const refreshBooks = async () => { await fetchBooks(); await fetchBookTags() }
+const handleEditBook = (b) => { currentEditBook.value = b; showEditBookDialog.value = true }
+const deleteBook = async (b) => { try { await ElMessageBox.confirm('确定删除？', '提示', { type: 'warning' }); await axios.delete(`/api/books/${b.id}`); ElMessage.success('删除成功'); refreshBooks() } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') } }
+const updateBookStatus = async (b, s) => { if (b.status === s) return; try { await axios.patch(`/api/books/${b.id}/status`, { status: s }); b.status = s; ElMessage.success('状态已更新') } catch { ElMessage.error('更新失败'); refreshBooks() } }
+
+// Figures
+const figures = ref([])
+const allFigureTags = ref([])
+const figurePage = ref(1)
+const figureFilter = reactive({ tags: [], title: '', status: '' })
 const showUploadFigureDialog = ref(false)
 const showEditFigureDialog = ref(false)
 const currentEditFigure = ref(null)
 
-const bookFilterForm = reactive({
-  tags: [],
-  title: '',
-  status: ''
-})
-
-const figureFilterForm = reactive({
-  tags: [],
-  title: '',
-  status: ''
-})
-
-// 添加分页状态
-const bookCurrentPage = ref(1)
-const figureCurrentPage = ref(1)
-const pageSize = ref(10)
-
-// 获取图书列表(管理员接口，包含所有状态)
-const fetchBooks = async () => {
-  try {
-    const res = await axios.get('/api/admin/books')
-    books.value = res.data
-  } catch (error) {
-    console.error('获取图书列表失败:', error)
-    ElMessage.error('获取图书列表失败')
-  }
-}
-
-// 获取图片列表(管理员接口，包含所有状态)
-const fetchFigures = async () => {
-  try {
-    const res = await axios.get('/api/admin/figures')
-    figures.value = res.data
-  } catch (error) {
-    console.error('获取图片列表失败:', error)
-    ElMessage.error('获取图片列表失败')
-  }
-}
-
-// 获取图书标签
-const fetchBookTags = async () => {
-  try {
-    const res = await axios.get('/api/book-tags')
-    allBookTags.value = res.data.tags || []
-  } catch (error) {
-    console.error('获取图书标签失败:', error)
-  }
-}
-
-// 获取图片标签
-const fetchFigureTags = async () => {
-  try {
-    const res = await axios.get('/api/figure-tags')
-    allFigureTags.value = res.data.tags || []
-  } catch (error) {
-    console.error('获取图片标签失败:', error)
-  }
-}
-
-// 图书筛选
-const filteredBooks = computed(() => {
-  let arr = books.value
-  if (bookFilterForm.tags && bookFilterForm.tags.length) {
-    arr = arr.filter(b => b.tags && bookFilterForm.tags.every(tag => b.tags.includes(tag)))
-  }
-  if (bookFilterForm.title) {
-    arr = arr.filter(b => b.title && b.title.includes(bookFilterForm.title))
-  }
-  if (bookFilterForm.status) {
-    arr = arr.filter(b => b.status === bookFilterForm.status)
-  }
-  return arr
-})
-
-// 添加图书分页计算属性
-const paginatedBooks = computed(() => {
-  const start = (bookCurrentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredBooks.value.slice(start, end)
-})
-
-// 图片筛选
 const filteredFigures = computed(() => {
   let arr = figures.value
-  if (figureFilterForm.tags && figureFilterForm.tags.length) {
-    arr = arr.filter(f => f.tags && figureFilterForm.tags.every(tag => f.tags.includes(tag)))
-  }
-  if (figureFilterForm.title) {
-    arr = arr.filter(f => f.title && f.title.includes(figureFilterForm.title))
-  }
-  if (figureFilterForm.status) {
-    arr = arr.filter(f => f.status === figureFilterForm.status)
-  }
+  if (figureFilter.tags.length) arr = arr.filter(f => f.tags?.length && figureFilter.tags.every(t => f.tags.includes(t)))
+  if (figureFilter.title) arr = arr.filter(f => f.title?.includes(figureFilter.title))
+  if (figureFilter.status) arr = arr.filter(f => f.status === figureFilter.status)
   return arr
 })
+const paginatedFigures = computed(() => filteredFigures.value.slice((figurePage.value - 1) * pageSize, figurePage.value * pageSize))
+watch([() => figureFilter.tags, () => figureFilter.title, () => figureFilter.status], () => { figurePage.value = 1 }, { deep: true })
+const resetFigureFilters = () => { figureFilter.tags = []; figureFilter.title = ''; figureFilter.status = ''; figurePage.value = 1 }
 
-// 添加图片分页计算属性
-const paginatedFigures = computed(() => {
-  const start = (figureCurrentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredFigures.value.slice(start, end)
-})
+const fetchFigures = async () => { try { figures.value = (await axios.get('/api/admin/figures')).data } catch { ElMessage.error('获取图片失败') } }
+const fetchFigureTags = async () => { try { allFigureTags.value = (await axios.get('/api/figure-tags')).data?.tags || [] } catch {} }
+const refreshFigures = async () => { await fetchFigures(); await fetchFigureTags() }
+const handleEditFigure = (f) => { currentEditFigure.value = f; showEditFigureDialog.value = true }
+const deleteFigure = async (f) => { try { await ElMessageBox.confirm('确定删除？', '提示', { type: 'warning' }); await axios.delete(`/api/figures/${f.id}`); ElMessage.success('删除成功'); refreshFigures() } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') } }
+const updateFigureStatus = async (f, s) => { if (f.status === s) return; try { await axios.patch(`/api/figures/${f.id}/status`, { status: s }); f.status = s; ElMessage.success('状态已更新') } catch { ElMessage.error('更新失败'); refreshFigures() } }
 
-// 筛选操作
-const resetBookFilters = () => {
-  bookFilterForm.tags = []
-  bookFilterForm.title = ''
-  bookFilterForm.status = ''
-  bookCurrentPage.value = 1
-}
+const statusText = (s) => ({ published: '已发布', draft: '草稿', recycled: '已回收' }[s] || '未知')
 
-const resetFigureFilters = () => {
-  figureFilterForm.tags = []
-  figureFilterForm.title = ''
-  figureFilterForm.status = ''
-  figureCurrentPage.value = 1
-}
-
-// 添加分页处理函数
-const handleBookPageChange = (page) => {
-  bookCurrentPage.value = page
-}
-
-const handleFigurePageChange = (page) => {
-  figureCurrentPage.value = page
-}
-
-// 监听筛选变化，重置到第一页
-watch([() => bookFilterForm.tags, () => bookFilterForm.title, () => bookFilterForm.status], () => {
-  bookCurrentPage.value = 1
-}, { deep: true })
-
-watch([() => figureFilterForm.tags, () => figureFilterForm.title, () => figureFilterForm.status], () => {
-  figureCurrentPage.value = 1
-}, { deep: true })
-
-// 图书操作
-const handleUploadBook = () => {
-  showUploadBookDialog.value = true
-}
-
-const handleBookUploadSuccess = () => {
-  refreshBooks()
-}
-
-const handleEditBook = (book) => {
-  console.log('编辑图书:', book)
-  currentEditBook.value = book
-  showEditBookDialog.value = true
-}
-
-const handleBookEditSuccess = () => {
-  refreshBooks()
-}
-
-const deleteBook = async (book) => {
-  try {
-    await ElMessageBox.confirm('确定要删除该图书吗？', '提示', {type: 'warning'})
-    await axios.delete(`/api/books/${book.id}`)
-    ElMessage.success('图书删除成功')
-    refreshBooks()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除图书失败:', error)
-      ElMessage.error('删除图书失败')
-    }
-  }
-}
-
-const refreshBooks = async () => {
-  await fetchBooks()
-  await fetchBookTags()
-}
-
-// 图片操作
-const handleUploadFigure = () => {
-  showUploadFigureDialog.value = true
-}
-
-const handleFigureUploadSuccess = () => {
-  refreshFigures()
-}
-
-const handleEditFigure = (figure) => {
-  console.log('编辑图片:', figure)
-  currentEditFigure.value = figure
-  showEditFigureDialog.value = true
-}
-
-const handleFigureEditSuccess = () => {
-  refreshFigures()
-}
-
-const deleteFigure = async (figure) => {
-  try {
-    await ElMessageBox.confirm('确定要删除该图片吗？', '提示', {type: 'warning'})
-    await axios.delete(`/api/figures/${figure.id}`)
-    ElMessage.success('图片删除成功')
-    refreshFigures()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除图片失败:', error)
-      ElMessage.error('删除图片失败')
-    }
-  }
-}
-
-const refreshFigures = async () => {
-  await fetchFigures()
-  await fetchFigureTags()
-}
-
-// 更新图书状态
-const updateBookStatus = async (book, newStatus) => {
-  if (book.status === newStatus) return
-
-  try {
-    await axios.patch(`/api/books/${book.id}/status`, {status: newStatus})
-    book.status = newStatus
-    const statusText = getStatusText(newStatus)
-    ElMessage.success(`图书状态已更新为：${statusText}`)
-  } catch (error) {
-    console.error('更新图书状态失败:', error)
-    ElMessage.error('更新图书状态失败')
-    refreshBooks()
-  }
-}
-
-// 更新图片状态
-const updateFigureStatus = async (figure, newStatus) => {
-  if (figure.status === newStatus) return
-
-  try {
-    await axios.patch(`/api/figures/${figure.id}/status`, {status: newStatus})
-    figure.status = newStatus
-    const statusText = getStatusText(newStatus)
-    ElMessage.success(`图片状态已更新为：${statusText}`)
-  } catch (error) {
-    console.error('更新图片状态失败:', error)
-    ElMessage.error('更新图片状态失败')
-    refreshFigures()
-  }
-}
-
-const getStatusText = (status) => {
-  switch (status) {
-    case 'published':
-      return '已发布'
-    case 'draft':
-      return '草稿'
-    case 'recycled':
-      return '已回收'
-    default:
-      return '未知'
-  }
-}
-
-// 在新标签页打开图片链接
-const openFigureInNewTab = (url) => {
-  if (!url) {
-    ElMessage.warning('图片链接为空')
-    return
-  }
-  window.open(url, '_blank')
-}
-
-// 访问图书
-const visitBook = (book) => {
-  if (book.status === 'published') {
-    // 如果有文件名，在新标签页中打开图书链接
-    if (book.filename) {
-      const url = `${book.filename}`
-      window.open(url, '_blank')
-    } else {
-      ElMessage.warning('该图书没有可访问的文件')
-    }
-  } else {
-    ElMessage.warning('只有已发布的图书才能访问')
-  }
-}
-
-onMounted(() => {
-  refreshBooks()
-  refreshFigures()
-})
+onMounted(() => { refreshBooks(); refreshFigures() })
 </script>
-
-<style scoped>
-.resource-management {
-  padding: 20px;
-  background: #f8f9fa;
-  min-height: 100vh;
-}
-
-.resource-tabs {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.action-bar {
-  margin-bottom: 20px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.filter-section {
-  margin-bottom: 20px;
-}
-
-.filter-card {
-  border-radius: 12px;
-  border: 1px solid #e1e8ed;
-}
-
-.filter-controls {
-  padding: 10px 0;
-}
-
-.tag-row {
-  margin-bottom: 20px;
-}
-
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 16px;
-}
-
-.filter-row:last-child {
-  margin-bottom: 0;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-item label {
-  color: #666;
-  font-size: 14px;
-  white-space: nowrap;
-  min-width: 80px;
-}
-
-.resource-list .filter-card {
-  border: 1px solid #e1e8ed;
-}
-
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  color: #333;
-}
-
-.resource-count {
-  color: #666;
-  font-size: 14px;
-  font-weight: normal;
-}
-
-.resource-table {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.resource-title {
-  font-weight: 500;
-  color: #333;
-}
-
-.resource-filename {
-  font-family: 'Monaco', 'Consolas', monospace;
-  color: #666;
-  font-size: 13px;
-}
-
-.resource-description {
-  color: #666;
-  font-size: 14px;
-}
-
-.resource-tags {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.tag-item {
-  margin: 0;
-}
-
-.more-tags {
-  color: #999;
-  font-size: 12px;
-  margin-left: 4px;
-}
-
-.no-tags {
-  color: #999;
-  font-style: italic;
-}
-
-.action-buttons-table {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.action-buttons-table .el-button {
-  margin: 2px 0;
-}
-
-.el-button {
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.el-button--primary {
-  background: #409eff;
-  border-color: #409eff;
-}
-
-.el-button--danger {
-  background: #f56c6c;
-  border-color: #f56c6c;
-}
-
-.reset-link-btn {
-  color: #666 !important;
-  font-weight: normal !important;
-}
-
-.reset-link-btn:hover {
-  color: #409eff !important;
-  background: transparent !important;
-}
-
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-:deep(.el-card__header) {
-  padding: 16px 20px;
-  background: #fafafa;
-  border-bottom: 1px solid #ebeef5;
-}
-
-:deep(.el-card__body) {
-  padding: 20px;
-}
-
-:deep(.el-table th) {
-  background: #fafafa !important;
-}
-
-:deep(.el-tabs__header) {
-  margin-bottom: 20px;
-}
-
-:deep(.el-tabs__nav-wrap::after) {
-  height: 1px;
-}
-
-:deep(.el-tabs__item) {
-  font-size: 16px;
-  font-weight: 500;
-  padding: 0 30px;
-}
-
-/* 状态下拉框样式 */:deep(.el-select .el-input__inner) {
-  text-align: center;
-  padding: 0 8px;
-}:deep(.el-select--small .el-input__inner) {
-  height: 28px;
-  line-height: 28px;
-}
-
-/* 分页样式 */
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 20px 0;
-  border-top: 1px solid #ebeef5;
-  margin-top: 20px;
-}
-
-:deep(.el-pagination) {
-  --el-pagination-bg-color: #f8f9fa;
-  --el-pagination-text-color: #666;
-  --el-pagination-border-radius: 6px;
-}
-
-:deep(.el-pagination .btn-prev),
-:deep(.el-pagination .btn-next) {
-  border-radius: 6px;
-}
-
-:deep(.el-pagination .el-pager li) {
-  border-radius: 6px;
-  margin: 0 2px;
-}
-
-/* 响应式布局 */
-@media (max-width: 768px) {
-  .resource-management {
-    padding: 15px;
-  }
-  
-  .resource-tabs {
-    padding: 15px;
-  }
-  
-  .action-bar {
-    margin-bottom: 15px;
-  }
-  
-  .filter-section {
-    margin-bottom: 15px;
-  }
-  
-  .filter-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .filter-item {
-    width: 100%;
-  }
-  
-  .filter-item label {
-    min-width: 60px;
-  }
-  
-  .action-buttons {
-    flex-wrap: wrap;
-  }
-  
-  .list-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .resource-count {
-    align-self: flex-end;
-  }
-}
-
-@media (max-width: 480px) {
-  .resource-management {
-    padding: 10px;
-  }
-  
-  .resource-tabs {
-    padding: 10px;
-  }
-  
-  .action-bar {
-    margin-bottom: 10px;
-  }
-  
-  .filter-section {
-    margin-bottom: 10px;
-  }
-  
-  .tag-row {
-    margin-bottom: 15px;
-  }
-  
-  .filter-row {
-    margin-bottom: 12px;
-  }
-  
-  .filter-item label {
-    min-width: 50px;
-    font-size: 13px;
-  }
-  
-  :deep(.el-tabs__item) {
-    font-size: 14px;
-    padding: 0 15px;
-  }
-  
-  :deep(.el-card__header) {
-    padding: 12px 15px;
-  }
-  
-  :deep(.el-card__body) {
-    padding: 15px;
-  }
-}
-
-/* 添加禁用按钮样式 */
-:deep(.el-button:disabled) {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-:deep(.el-button--info:disabled) {
-  background-color: #c0c4cc;
-  border-color: #c0c4cc;
-  color: #ffffff;
-}
-</style>
