@@ -6,7 +6,7 @@
         {{ { published: '已发布', draft: '草稿', recycled: '已回收' }[article.status] || '未知' }}
       </span>
     </div>
-    <p v-if="article.category" class="text-xs text-accent mb-2">📂 {{ article.category }}</p>
+    <p v-if="article.category" class="text-xs text-accent mb-2">{{ article.category }}</p>
     <p v-if="article.description" class="text-sm text-secondary leading-relaxed line-clamp-2 mb-3">{{ article.description }}</p>
     <div v-if="article.tags && article.tags.length" class="flex flex-wrap gap-1.5 mb-3">
       <span v-for="tag in article.tags.slice(0, 4)" :key="tag" class="tag-pill text-[11px]">{{ tag }}</span>

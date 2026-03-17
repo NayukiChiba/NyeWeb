@@ -10,9 +10,8 @@
         @update-status="(t, s) => $emit('update-status', t, s)"
       />
     </div>
-    <div v-else class="text-center py-12 text-secondary/60">
-      <p class="text-lg mb-1">📦</p>
-      <p class="text-sm">暂无工具数据</p>
+    <div v-else class="admin-empty">
+      <p>暂无工具数据</p>
     </div>
   </div>
 </template>

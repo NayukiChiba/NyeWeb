@@ -16,12 +16,12 @@
     </div>
     <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <el-select :model-value="project.status" size="small" style="width: 100px" @change="(v) => $emit('update-status', project, v)">
+        <el-select :model-value="project.status" size="small" style="width: 110px" @change="(v) => $emit('update-status', project, v)">
           <el-option label="计划中" value="planning"/>
           <el-option label="进行中" value="in-progress"/>
           <el-option label="已完成" value="completed"/>
         </el-select>
-        <el-select :model-value="String(project.visibility)" size="small" style="width: 80px" @change="(v) => $emit('update-visibility', project, Number(v))">
+        <el-select :model-value="String(project.visibility)" size="small" style="width: 90px" @change="(v) => $emit('update-visibility', project, Number(v))">
           <el-option label="可见" value="1"/>
           <el-option label="隐藏" value="0"/>
         </el-select>

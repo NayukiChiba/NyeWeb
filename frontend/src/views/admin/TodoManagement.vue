@@ -10,7 +10,7 @@
 
     <p class="text-xs text-secondary/60 mb-4">共 {{ todos.length }} 条待办</p>
 
-    <div v-if="paginatedTodos.length" class="admin-grid">
+    <div v-if="paginatedTodos.length" class="admin-grid-compact">
       <div v-for="t in paginatedTodos" :key="t.id" class="admin-card">
         <div class="flex items-start justify-between mb-2">
           <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -25,7 +25,7 @@
           <el-tag :type="typeTagMap[t.type] || 'info'" size="small">{{ typeTextMap[t.type] || t.type }}</el-tag>
           <el-tag :type="priorityTagMap[t.priority] || 'info'" size="small" effect="dark">{{ t.priority }}</el-tag>
         </div>
-        <el-progress :percentage="t.progress || 0" :stroke-width="4" class="mb-3"/>
+        <el-progress :percentage="t.progress || 0" :stroke-width="4" class="mb-2"/>
         <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
           <el-button size="small" @click="toggleCompleted(t)">
             {{ t.completed ? '标记未完成' : '标记完成' }}
@@ -37,9 +37,8 @@
         </div>
       </div>
     </div>
-    <div v-else class="text-center py-12 text-secondary/60">
-      <p class="text-lg mb-1">✅</p>
-      <p class="text-sm">暂无待办</p>
+    <div v-else class="admin-empty">
+      <p>暂无待办</p>
     </div>
 
     <div v-if="todos.length > pageSize" class="flex justify-center mt-6">

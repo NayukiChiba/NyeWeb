@@ -10,7 +10,7 @@
 
     <p class="text-xs text-secondary/60 mb-4">共 {{ diaries.length }} 条日记</p>
 
-    <div v-if="paginatedDiaries.length" class="admin-grid">
+    <div v-if="paginatedDiaries.length" class="admin-grid-compact">
       <div v-for="d in paginatedDiaries" :key="d.id" class="admin-card">
         <div class="flex items-start justify-between mb-2">
           <span class="text-xs text-secondary/60 tabular-nums">{{ formatDate(d.date) }}</span>
@@ -21,7 +21,7 @@
         </div>
         <p class="text-sm text-primary leading-relaxed line-clamp-3 mb-3">{{ d.content }}</p>
         <div v-if="d.images && d.images.length" class="mb-3">
-          <span class="tag-pill text-[11px]">📷 {{ d.images.length }}张图片</span>
+          <span class="tag-pill text-[11px]">{{ d.images.length }}张图片</span>
         </div>
         <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
           <el-button size="small" @click="openEdit(d)">编辑</el-button>
@@ -29,9 +29,8 @@
         </div>
       </div>
     </div>
-    <div v-else class="text-center py-12 text-secondary/60">
-      <p class="text-lg mb-1">📔</p>
-      <p class="text-sm">暂无日记</p>
+    <div v-else class="admin-empty">
+      <p>暂无日记</p>
     </div>
 
     <div v-if="diaries.length > pageSize" class="flex justify-center mt-6">

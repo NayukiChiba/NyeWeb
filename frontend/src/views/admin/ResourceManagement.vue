@@ -6,8 +6,8 @@
 
     <!-- Tabs -->
     <div class="flex gap-2 mb-6">
-      <button :class="['px-4 py-2 rounded-xl text-sm font-medium transition-all', activeTab === 'books' ? 'bg-accent text-white shadow-sm' : 'bg-white text-secondary border border-gray-200 hover:border-accent/30']" @click="activeTab = 'books'">📚 图书管理</button>
-      <button :class="['px-4 py-2 rounded-xl text-sm font-medium transition-all', activeTab === 'figures' ? 'bg-accent text-white shadow-sm' : 'bg-white text-secondary border border-gray-200 hover:border-accent/30']" @click="activeTab = 'figures'">🖼️ 图片管理</button>
+      <button :class="['px-4 py-2 rounded-xl text-sm font-medium transition-all', activeTab === 'books' ? 'bg-accent text-white shadow-sm' : 'bg-white text-secondary border border-gray-200 hover:border-accent/30']" @click="activeTab = 'books'">图书管理</button>
+      <button :class="['px-4 py-2 rounded-xl text-sm font-medium transition-all', activeTab === 'figures' ? 'bg-accent text-white shadow-sm' : 'bg-white text-secondary border border-gray-200 hover:border-accent/30']" @click="activeTab = 'figures'">图片管理</button>
     </div>
 
     <!-- Books Tab -->
@@ -46,7 +46,7 @@
           </div>
         </div>
       </div>
-      <div v-else class="text-center py-12 text-secondary/60"><p class="text-lg mb-1">📚</p><p class="text-sm">暂无图书</p></div>
+      <div v-else class="admin-empty"><p>暂无图书</p></div>
       <div v-if="filteredBooks.length > pageSize" class="flex justify-center mt-6"><el-pagination v-model:current-page="bookPage" :page-size="pageSize" :total="filteredBooks.length" background layout="prev, pager, next"/></div>
     </template>
 
@@ -86,7 +86,7 @@
           </div>
         </div>
       </div>
-      <div v-else class="text-center py-12 text-secondary/60"><p class="text-lg mb-1">🖼️</p><p class="text-sm">暂无图片</p></div>
+      <div v-else class="admin-empty"><p>暂无图片</p></div>
       <div v-if="filteredFigures.length > pageSize" class="flex justify-center mt-6"><el-pagination v-model:current-page="figurePage" :page-size="pageSize" :total="filteredFigures.length" background layout="prev, pager, next"/></div>
     </template>
 
