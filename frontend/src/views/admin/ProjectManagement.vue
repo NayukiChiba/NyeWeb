@@ -1,332 +1,96 @@
 <template>
-  <div class="project-management">
-    <!-- 操作栏 -->
-    <div class="action-bar">
-      <div class="action-buttons">
-        <el-button @click="openUploadDialog">
-          上传项目
-        </el-button>
+  <div class="admin-page">
+    <div class="admin-header">
+      <h2 class="admin-title">项目管理</h2>
+      <div class="flex gap-2">
+        <el-button type="primary" @click="openCreate">上传项目</el-button>
         <el-button :icon="Refresh" circle @click="refreshProjects"/>
       </div>
     </div>
 
-    <!-- 筛选区域 -->
-    <div class="filter-section">
-      <el-row :gutter="20">
-        <el-col :span="24">
-          <FilterControlsCard
-              :filters="filterForm"
-              :sort-order="sortOrder"
-              @reset="resetAllFilters"
-              @update:tags="filterForm.tags = $event"
-              @update:title="filterForm.title = $event"
-              @update:status="filterForm.status = $event"
-              @update:sortOrder="sortOrder = $event"
-          />
-        </el-col>
-      </el-row>
+    <ProjectFilterBar :filters="filterForm" :all-tags="allTags" @reset="resetFilters" @update:tags="filterForm.tags = $event" @update:title="filterForm.title = $event" @update:status="filterForm.status = $event"/>
+    <p class="text-xs text-secondary/60 mb-4">共 {{ filteredProjects.length }} 个项目</p>
+
+    <ProjectGrid :projects="paginatedProjects" @edit="openEdit" @delete="deleteProject" @update-status="updateStatus"/>
+
+    <div v-if="filteredProjects.length > pageSize" class="flex justify-center mt-6">
+      <el-pagination v-model:current-page="currentPage" :page-size="pageSize" :total="filteredProjects.length" background layout="prev, pager, next"/>
     </div>
 
-    <!-- 项目列表 -->
-    <div class="project-list">
-      <ProjectListCard
-          :projects="paginatedProjects"
-          :total="sortedProjects.length"
-          @delete="deleteProject"
-          @edit="openEditDialog"
-          @update-status="updateProjectStatus"
-          @visit="visitProject"
-      />
-      
-      <!-- 添加分页组件 -->
-      <div v-if="sortedProjects.length > pageSize" class="pagination-wrapper">
-        <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="sortedProjects.length"
-            background
-            layout="prev, pager, next, jumper, total"
-            @current-change="handlePageChange"
-        />
-      </div>
-    </div>
-
-    <!-- 上传项目对话框 -->
-    <UploadProjectDialog
-        v-model="showUploadDialog"
-        @upload-success="refreshProjects"
-    />
-
-    <!-- 编辑项目对话框 -->
-    <EditProjectDialog
-        v-model="showEditDialog"
-        :project="editingProject"
-        @update-success="refreshProjects"
-    />
+    <ProjectFormDialog v-model="dialogVisible" :project="currentProject" :all-tags="allTags" :is-edit="isEditing" @success="refreshProjects"/>
   </div>
 </template>
 
 <script setup>
-import {computed, onMounted, reactive, ref, watch} from 'vue'
-import {ElMessage, ElMessageBox} from 'element-plus'
-import {Refresh} from '@element-plus/icons-vue'
-import {useRouter} from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Refresh } from '@element-plus/icons-vue'
 import axios from 'axios'
-import UploadProjectDialog from '@/components/Admin/ProjectManagement/UploadProjectDialog.vue'
-import EditProjectDialog from '@/components/Admin/ProjectManagement/EditProjectDialog.vue'
-import FilterControlsCard from '@/components/Admin/ProjectManagement/FilterControlsCard.vue'
-import ProjectListCard from '@/components/Admin/ProjectManagement/ProjectListCard.vue'
+import ProjectFilterBar from '@/components/Admin/ProjectManagement/ProjectFilterBar.vue'
+import ProjectGrid from '@/components/Admin/ProjectManagement/ProjectGrid.vue'
+import ProjectFormDialog from '@/components/Admin/ProjectManagement/ProjectFormDialog.vue'
 
 const projects = ref([])
-const filterForm = reactive({
-  tags: [],
-  title: '',
-  status: ''
+const allTags = ref([])
+const currentPage = ref(1)
+const pageSize = 12
+const dialogVisible = ref(false)
+const isEditing = ref(false)
+const currentProject = ref(null)
+const filterForm = reactive({ tags: [], title: '', status: '' })
+
+const filteredProjects = computed(() => {
+  let arr = projects.value
+  if (filterForm.tags.length) arr = arr.filter(p => p.tags?.length && filterForm.tags.every(tag => p.tags.includes(tag)))
+  if (filterForm.title) arr = arr.filter(p => p.name?.includes(filterForm.title))
+  if (filterForm.status) arr = arr.filter(p => p.status === filterForm.status)
+  return arr
 })
 
-const sortOrder = ref('desc')
-// 添加分页状态
-const currentPage = ref(1)
-const pageSize = ref(10)
+const paginatedProjects = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredProjects.value.slice(start, start + pageSize)
+})
 
-// 获取项目列表(管理员接口，包含所有状态)
+watch([() => filterForm.tags, () => filterForm.title, () => filterForm.status], () => { currentPage.value = 1 }, { deep: true })
+
+const resetFilters = () => { filterForm.tags = []; filterForm.title = ''; filterForm.status = ''; currentPage.value = 1 }
+
 const fetchProjects = async () => {
   try {
     const res = await axios.get('/api/admin/projects')
-    projects.value = res.data
-  } catch (error) {
-    console.error('获取项目列表失败:', error)
-    ElMessage.error('获取项目列表失败')
-  }
+    projects.value = res.data || []
+  } catch { ElMessage.error('获取项目列表失败') }
 }
 
-// 项目筛选
-const filteredProjects = computed(() => {
-  let arr = projects.value
-  if (filterForm.tags && filterForm.tags.length) {
-    arr = arr.filter(p => p.tags && filterForm.tags.every(tag => p.tags.includes(tag)))
-  }
-  if (filterForm.title) {
-    arr = arr.filter(p => p.name && p.name.includes(filterForm.title))
-  }
-  if (filterForm.status) {
-    arr = arr.filter(p => p.status === filterForm.status)
-  }
-  return arr
-})
-
-// 排序
-const sortedProjects = computed(() => {
-  const arr = [...filteredProjects.value]
-  arr.sort((a, b) => {
-    if (sortOrder.value === 'asc') return a.id - b.id
-    return b.id - a.id
-  })
-  return arr
-})
-
-// 添加分页计算属性
-const paginatedProjects = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return sortedProjects.value.slice(start, end)
-})
-
-// 筛选和排序操作
-const resetAllFilters = () => {
-  filterForm.tags = []
-  filterForm.title = ''
-  filterForm.status = ''
-  currentPage.value = 1
-}
-
-// 添加分页处理函数
-const handlePageChange = (page) => {
-  currentPage.value = page
-}
-
-// 监听筛选变化，重置到第一页
-watch([() => filterForm.tags, () => filterForm.title, () => filterForm.status, () => sortOrder.value], () => {
-  currentPage.value = 1
-}, { deep: true })
-
-// 项目操作
-const openUploadDialog = () => {
-  showUploadDialog.value = true
-}
-
-const openEditDialog = (project) => {
-  editingProject.value = {...project}
-  showEditDialog.value = true
-}
-
-const deleteProject = async (project) => {
+const fetchTags = async () => {
   try {
-    await ElMessageBox.confirm('确定要删除该项目吗？', '提示', {type: 'warning'})
-    await axios.delete(`/api/projects/${project.id}`)
+    const res = await axios.get('/api/project-tags')
+    allTags.value = res.data?.tags || []
+  } catch {}
+}
+
+const refreshProjects = async () => { await fetchProjects(); await fetchTags() }
+const openCreate = () => { isEditing.value = false; currentProject.value = null; dialogVisible.value = true }
+const openEdit = (p) => { isEditing.value = true; currentProject.value = { ...p }; dialogVisible.value = true }
+
+const deleteProject = async (p) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该项目吗？', '提示', { type: 'warning' })
+    await axios.delete(`/api/projects/${p.id}`)
     ElMessage.success('删除成功')
     refreshProjects()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除项目失败:', error)
-      ElMessage.error('删除项目失败')
-    }
-  }
+  } catch (e) { if (e !== 'cancel') ElMessage.error('删除失败') }
 }
 
-const refreshProjects = async () => {
-  await fetchProjects()
-}
-
-// 更新项目状态
-const updateProjectStatus = async (project, newStatus) => {
-  if (project.status === newStatus) return
-
+const updateStatus = async (p, newStatus) => {
+  if (p.status === newStatus) return
   try {
-    await axios.patch(`/api/projects/${project.id}/status`, {status: newStatus})
-
-    // 更新本地数据
-    project.status = newStatus
-
-    const statusText = getStatusText(newStatus)
-    ElMessage.success(`项目状态已更新为：${statusText}`)
-  } catch (error) {
-    console.error('更新项目状态失败:', error)
-    ElMessage.error('更新项目状态失败')
-    // 刷新数据以恢复原状态
-    refreshProjects()
-  }
+    await axios.patch(`/api/projects/${p.id}/status`, { status: newStatus })
+    p.status = newStatus
+    ElMessage.success('状态已更新')
+  } catch { ElMessage.error('更新失败'); refreshProjects() }
 }
 
-// 访问项目
-const visitProject = (project) => {
-  if (project.link) {
-    window.open(project.link, '_blank')
-  } else {
-    ElMessage.warning('该项目没有链接')
-  }
-}
-
-// 状态相关方法
-const getStatusText = (status) => {
-  switch (status) {
-    case 'published':
-      return '已发布'
-    case 'draft':
-      return '草稿'
-    case 'recycled':
-      return '已回收'
-    default:
-      return '未知'
-  }
-}
-
-const showUploadDialog = ref(false)
-const showEditDialog = ref(false)
-const editingProject = ref(null)
-const router = useRouter()
-
-onMounted(() => {
-  refreshProjects()
-})
+onMounted(() => refreshProjects())
 </script>
-
-<style scoped>
-.project-management {
-  padding: 20px;
-  background: #f8f9fa;
-  min-height: 100vh;
-}
-
-.action-bar {
-  margin-bottom: 20px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.filter-section {
-  margin-bottom: 20px;
-}
-
-.el-button {
-  border-radius: 6px;
-  font-weight: 500;
-}
-
-.el-button--primary {
-  background: #409eff;
-  border-color: #409eff;
-}
-
-.el-button--danger {
-  background: #f56c6c;
-  border-color: #f56c6c;
-}
-
-.project-list {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-/* 分页样式 */
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 20px 0;
-  border-top: 1px solid #ebeef5;
-  background: white;
-}
-
-:deep(.el-pagination) {
-  --el-pagination-bg-color: #f8f9fa;
-  --el-pagination-text-color: #666;
-  --el-pagination-border-radius: 6px;
-}
-
-:deep(.el-pagination .btn-prev),
-:deep(.el-pagination .btn-next) {
-  border-radius: 6px;
-}
-
-:deep(.el-pagination .el-pager li) {
-  border-radius: 6px;
-  margin: 0 2px;
-}
-
-/* 响应式布局 */
-@media (max-width: 768px) {
-  .project-management {
-    padding: 15px;
-  }
-  
-  .action-bar {
-    margin-bottom: 15px;
-  }
-  
-  .filter-section {
-    margin-bottom: 15px;
-  }
-  
-  .action-buttons {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .project-management {
-    padding: 10px;
-  }
-  
-  .action-bar {
-    margin-bottom: 10px;
-  }
-  
-  .filter-section {
-    margin-bottom: 10px;
-  }
-}
-</style>
