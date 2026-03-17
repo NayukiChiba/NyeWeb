@@ -12,25 +12,19 @@
 
     <div v-if="paginatedTodos.length" class="admin-grid-compact">
       <div v-for="t in paginatedTodos" :key="t.id" class="admin-card">
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex items-center gap-2 flex-1 min-w-0">
-            <span v-if="t.icon" class="text-base flex-shrink-0" v-html="iconPreview(t.icon)"/>
-            <h3 class="font-bold text-sm text-primary truncate">{{ t.task }}</h3>
-          </div>
-          <span :class="['status-badge ml-2', t.completed ? 'published' : 'draft']">
-            {{ t.completed ? '已完成' : '进行中' }}
-          </span>
+        <div class="flex items-center justify-between mb-1.5">
+          <h3 class="font-semibold text-sm text-primary truncate flex-1 mr-2">{{ t.task }}</h3>
+          <span :class="['status-badge', t.completed ? 'published' : 'draft']">{{ t.completed ? '已完成' : '进行中' }}</span>
         </div>
-        <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex items-center gap-1.5 mb-2">
           <el-tag :type="typeTagMap[t.type] || 'info'" size="small">{{ typeTextMap[t.type] || t.type }}</el-tag>
           <el-tag :type="priorityTagMap[t.priority] || 'info'" size="small" effect="dark">{{ t.priority }}</el-tag>
+          <span class="text-[11px] text-secondary/50 ml-auto">{{ t.progress || 0 }}%</span>
         </div>
-        <el-progress :percentage="t.progress || 0" :stroke-width="4" class="mb-2"/>
-        <div class="pt-3 border-t border-gray-100 flex items-center justify-between">
-          <el-button size="small" @click="toggleCompleted(t)">
-            {{ t.completed ? '标记未完成' : '标记完成' }}
-          </el-button>
-          <div class="flex gap-2">
+        <el-progress :percentage="t.progress || 0" :stroke-width="3" :show-text="false" class="mb-2"/>
+        <div class="pt-2 border-t border-gray-100 flex items-center justify-between">
+          <el-button size="small" @click="toggleCompleted(t)">{{ t.completed ? '未完成' : '完成' }}</el-button>
+          <div class="flex gap-1.5">
             <el-button size="small" @click="openEdit(t)">编辑</el-button>
             <el-button size="small" type="danger" @click="deleteTodo(t)">删除</el-button>
           </div>
