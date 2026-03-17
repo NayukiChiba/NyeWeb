@@ -14,14 +14,9 @@
           </div>
         </div>
 
-        <!-- Editors Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="admin-card" style="cursor: default;">
-            <TimelineEditor/>
-          </div>
-          <div class="admin-card" style="cursor: default;">
-            <FavoriteImagesEditor/>
-          </div>
+        <!-- Editors -->
+        <div class="admin-card" style="cursor: default;">
+          <FavoriteImagesEditor/>
         </div>
       </div>
     </div>
@@ -31,7 +26,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import AdminSidebar from '@/components/Admin/AdminSidebar.vue'
-import TimelineEditor from '@/components/Admin/DashBoard/TimelineEditor.vue'
+
 import FavoriteImagesEditor from '@/components/Admin/DashBoard/FavoriteImagesEditor.vue'
 import axios from 'axios'
 
