@@ -167,13 +167,72 @@ const extractHeadings = () => {
   emit('headings-extracted', extracted)
 }
 
+// Obsidian callout 颜色映射
+const calloutConfig = {
+  NOTE:     { color: '#448aff', icon: 'ℹ️' },
+  INFO:     { color: '#448aff', icon: 'ℹ️' },
+  TIP:      { color: '#00bfa5', icon: '💡' },
+  SUCCESS:  { color: '#00c853', icon: '✅' },
+  WARNING:  { color: '#ff9100', icon: '⚠️' },
+  DANGER:   { color: '#ff1744', icon: '🔴' },
+  BUG:      { color: '#f44336', icon: '🐛' },
+  QUESTION: { color: '#aa00ff', icon: '❓' },
+  ABSTRACT: { color: '#00b0ff', icon: '📋' },
+  EXAMPLE:  { color: '#7c4dff', icon: '📌' },
+  QUOTE:    { color: '#9e9e9e', icon: '💬' },
+  TODO:     { color: '#ff6d00', icon: '📝' },
+}
+
+// 渲染 Obsidian callouts
+const renderCallouts = (html) => {
+  // Match blockquotes starting with [!TYPE]
+  return html.replace(
+    /<blockquote>\s*<p>\[!(\w+)\]\s*(.*?)\n?(.*?)<\/p>([\s\S]*?)<\/blockquote>/g,
+    (match, type, title, firstLine, rest) => {
+      const upper = type.toUpperCase()
+      const cfg = calloutConfig[upper] || { color: '#448aff', icon: 'ℹ️' }
+      const displayTitle = title || upper
+      const body = (firstLine ? firstLine : '') + (rest || '')
+      return `<div class="callout callout-${upper.toLowerCase()}" style="border-left-color:${cfg.color}">
+        <div class="callout-title" style="color:${cfg.color}">
+          <span class="callout-icon">${cfg.icon}</span> ${displayTitle}
+        </div>
+        <div class="callout-body">${body}</div>
+      </div>`
+    }
+  )
+}
+
+// 渲染 task list checkboxes
+const renderTaskLists = (html) => {
+  return html
+    .replace(/<li>\s*\[x\]/gi, '<li class="task-item checked"><input type="checkbox" checked disabled />')
+    .replace(/<li>\s*\[ \]/g, '<li class="task-item"><input type="checkbox" disabled />')
+}
+
+// 渲染 [[wikilinks]]
+const renderWikilinks = (html) => {
+  // [[target|display]] or [[target]]
+  return html.replace(/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, (match, target, display) => {
+    const slug = target.replace(/\s+/g, '')
+    const label = display || target
+    return `<a href="/articles/${slug}" class="wikilink">${label}</a>`
+  })
+}
+
 const renderContent = async () => {
   if (!props.content) {
     renderedHtml.value = ''
     return
   }
   const env = { articlePath: props.category }
-  renderedHtml.value = md.render(props.content, env)
+  let html = md.render(props.content, env)
+
+  // Post-process: callouts → task lists → wikilinks
+  html = renderCallouts(html)
+  html = renderTaskLists(html)
+  html = renderWikilinks(html)
+  renderedHtml.value = html
 
   await nextTick()
   extractHeadings()
@@ -258,6 +317,12 @@ onMounted(renderContent)
   padding-left: 1.8em;
   margin-bottom: 1em;
 }
+
+:deep(ul) { list-style-type: disc; }
+:deep(ul ul) { list-style-type: circle; }
+:deep(ul ul ul) { list-style-type: square; }
+:deep(ol) { list-style-type: decimal; }
+:deep(ol ol) { list-style-type: lower-alpha; }
 
 :deep(li + li) { margin-top: 0.2em; }
 
@@ -449,6 +514,103 @@ onMounted(renderContent)
   padding: 2px 4px;
   border-radius: 3px;
   border: 1px solid #fecaca;
+}
+
+/* ─── Strikethrough ─── */
+:deep(del) {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+/* ─── Task List ─── */
+:deep(.task-item) {
+  list-style: none;
+  margin-left: -1.5em;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+
+:deep(.task-item input[type="checkbox"]) {
+  margin-top: 0.35em;
+  width: 15px;
+  height: 15px;
+  accent-color: #3b82f6;
+  flex-shrink: 0;
+}
+
+/* ─── Callout ─── */
+:deep(.callout) {
+  margin: 1em 0;
+  padding: 0.8em 1.2em;
+  border-left: 4px solid #448aff;
+  border-radius: 0 8px 8px 0;
+  background-color: #f8fafc;
+}
+
+:deep(.callout-title) {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.3em;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+:deep(.callout-icon) { font-size: 1.1em; }
+
+:deep(.callout-body) {
+  font-size: 0.93rem;
+  color: #475569;
+  line-height: 1.7;
+}
+
+:deep(.callout-body p:last-child) { margin-bottom: 0; }
+
+/* ─── Details / Summary ─── */
+:deep(details) {
+  margin: 1em 0;
+  padding: 0.8em 1em;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fafbfc;
+}
+
+:deep(details[open]) {
+  padding-bottom: 0.6em;
+}
+
+:deep(summary) {
+  font-weight: 600;
+  cursor: pointer;
+  color: #334155;
+  padding: 0.2em 0;
+  user-select: none;
+}
+
+:deep(summary:hover) { color: #3b82f6; }
+
+:deep(details[open] > summary) {
+  margin-bottom: 0.6em;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5em;
+}
+
+/* ─── Wikilink ─── */
+:deep(.wikilink) {
+  color: #7c3aed;
+  border-bottom: 1px dashed #7c3aed;
+}
+
+:deep(.wikilink:hover) {
+  color: #6d28d9;
+  border-bottom-style: solid;
+}
+
+/* ─── Nested Blockquote ─── */
+:deep(blockquote blockquote) {
+  margin: 0.5em 0;
+  border-left-color: #93c5fd;
 }
 
 /* ─── Responsive ─── */
