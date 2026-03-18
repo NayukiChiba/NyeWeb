@@ -3,6 +3,16 @@
     <div class="header">
       <h1>文章</h1>
       <p>探索、学习、分享。这里是我关于技术、科学和思考的笔记。</p>
+      <div class="search-bar">
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索文章标题、描述、标签..."
+          :prefix-icon="Search"
+          clearable
+          size="large"
+          class="search-input"
+        />
+      </div>
     </div>
     <div v-loading="loading" class="main-content">
       <aside class="timeline-sidebar">
@@ -42,8 +52,9 @@
 </template>
 
 <script setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import axios from 'axios'
+import { Search } from '@element-plus/icons-vue'
 import ArticleCard from '@/components/Main/Article/ArticleCard.vue'
 import ArticleTimeline from '@/components/Main/Article/ArticleTimeline.vue'
 import ArticleTagFilter from '@/components/Main/Article/ArticleTagFilter.vue'
@@ -53,6 +64,7 @@ const loading = ref(false)
 const articles = ref([])
 const tags = ref([])
 const tagCounts = ref({})
+const searchQuery = ref('')
 
 const API_BASE_URL = '/api'
 
@@ -146,15 +158,25 @@ const availableTagCounts = computed(() => {
   return counts
 })
 
-// 3. 最终筛选结果(分类+标签)
+// 3. 最终筛选结果(分类+标签+搜索)
 const filteredArticles = computed(() => {
-  if (!selectedTag.value) {
-    return articlesByCategory.value
+  let arr = articlesByCategory.value
+  if (selectedTag.value) {
+    arr = arr.filter(article => article.tags && article.tags.includes(selectedTag.value))
   }
-  return articlesByCategory.value.filter(article =>
-      article.tags && article.tags.includes(selectedTag.value)
-  )
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    arr = arr.filter(a =>
+      (a.title && a.title.toLowerCase().includes(q)) ||
+      (a.description && a.description.toLowerCase().includes(q)) ||
+      (a.category && a.category.toLowerCase().includes(q)) ||
+      (a.tags && a.tags.some(t => t.toLowerCase().includes(q)))
+    )
+  }
+  return arr
 })
+
+watch(searchQuery, () => { currentPage.value = 1 })
 
 // 分页相关
 const currentPage = ref(1)
@@ -229,6 +251,17 @@ onMounted(async () => {
 .header p {
   font-size: 1.1em;
   color: #606266;
+}
+
+.search-bar {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  max-width: 480px;
+  width: 100%;
 }
 
 .main-content {
