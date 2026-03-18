@@ -4,6 +4,7 @@
       <h2 class="admin-title">文章管理</h2>
       <div class="flex gap-2">
         <el-button type="primary" @click="openUpload">上传文章</el-button>
+        <el-button type="success" :loading="syncing" @click="syncArticles">同步</el-button>
         <el-button :icon="Refresh" circle @click="refreshArticles"/>
       </div>
     </div>
@@ -39,6 +40,7 @@ const sortOrder = ref('desc')
 const showUploadDialog = ref(false)
 const showEditDialog = ref(false)
 const editingArticle = ref(null)
+const syncing = ref(false)
 const filterForm = reactive({ tags: [], title: '', category: '', status: '' })
 
 const filteredArticles = computed(() => {
@@ -70,6 +72,17 @@ const fetchArticles = async () => {
 }
 
 const refreshArticles = () => fetchArticles()
+
+const syncArticles = async () => {
+  syncing.value = true
+  try {
+    const res = await axios.post('/api/articles/sync')
+    ElMessage.success(res.data?.message || '同步完成')
+    await fetchArticles()
+  } catch { ElMessage.error('同步失败') }
+  finally { syncing.value = false }
+}
+
 const openUpload = () => { showUploadDialog.value = true }
 const openEdit = (a) => { editingArticle.value = { ...a }; showEditDialog.value = true }
 
