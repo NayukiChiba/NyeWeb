@@ -194,95 +194,74 @@ onMounted(renderContent)
 <style scoped>
 .markdown-body {
   padding: 2rem 2.5rem;
-  background-color: var(--color-background, #FAFAFA);
+  background-color: #fff;
   border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid #E2E8F0;
-  position: relative;
-  line-height: 1.8;
-  color: var(--color-text, #09090B);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  font-size: 1.05rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
+  line-height: 1.85;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  font-size: 1rem;
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100% !important;
 }
 
-/* 隐藏默认的锚点符号 */
+/* ─── Headings ─── */
+:deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  position: relative;
+}
+
+:deep(h1) {
+  font-size: 1.75rem;
+  padding-bottom: 0.4em;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+:deep(h2) {
+  font-size: 1.4rem;
+  padding-left: 0.7em;
+  border-left: 3px solid #3b82f6;
+  border-bottom: none;
+}
+
+:deep(h3) { font-size: 1.2rem; }
+:deep(h4) { font-size: 1.05rem; }
+:deep(h5), :deep(h6) { font-size: 0.95rem; color: #475569; }
+
+/* ─── Anchor ─── */
 :deep(.header-anchor) {
   opacity: 0;
   position: absolute;
-  left: -0.7em;
+  left: -1em;
   text-decoration: none;
-  transition: opacity 0.2s;
+  transition: opacity 0.15s;
 }
-
 :deep(h1:hover .header-anchor),
 :deep(h2:hover .header-anchor),
 :deep(h3:hover .header-anchor),
 :deep(h4:hover .header-anchor),
 :deep(h5:hover .header-anchor),
 :deep(h6:hover .header-anchor) {
-  opacity: 1;
+  opacity: 0.5;
 }
 
-/* --- 美化样式 --- */
+/* ─── Text ─── */
+:deep(p) { margin-top: 0; margin-bottom: 1em; }
 
-/* 标题美化 */
-:deep(h1),
-:deep(h2),
-:deep(h3),
-:deep(h4),
-:deep(h5),
-:deep(h6) {
-  margin-top: 1.5em;
-  margin-bottom: 0.75em;
-  font-weight: 600;
-  color: var(--color-primary, #18181B);
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  position: relative;
-}
-
-:deep(h1) {
-  font-size: 2rem;
-  padding-bottom: 0.5em;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-:deep(h2) {
-  font-size: 1.5rem;
-  padding-bottom: 0.3em;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-:deep(h3) {
-  font-size: 1.25rem;
-}
-
-:deep(h4) {
-  font-size: 1.1rem;
-}
-
-:deep(h5),
-:deep(h6) {
-  font-size: 1rem;
-}
-
-:deep(p) {
-  margin-top: 0;
+:deep(ul), :deep(ol) {
+  padding-left: 1.8em;
   margin-bottom: 1em;
 }
 
-:deep(ul),
-:deep(ol) {
-  padding-left: 2em;
-  margin-bottom: 1em;
-}
+:deep(li + li) { margin-top: 0.2em; }
 
-:deep(li + li) {
-  margin-top: 0.25em;
-}
+:deep(li > p) { margin-bottom: 0.4em; }
 
 :deep(img) {
   max-width: 100%;
@@ -297,149 +276,144 @@ onMounted(renderContent)
   margin: 2em 0;
 }
 
-/* 代码块容器 */
+/* ─── Code Block ─── */
 :deep(.code-block-wrapper) {
   position: relative;
-  margin: 1.5rem 0;
-  border-radius: 8px;
+  margin: 1.2rem 0;
+  border-radius: 10px;
   overflow: hidden;
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  box-shadow: none;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 
-/* 代码块头部 */
 :deep(.code-block-header) {
   display: flex;
   align-items: center;
-  padding: 0.4em 1em;
-  background-color: #e9ecef;
-  border-bottom: 1px solid #dee2e6;
+  padding: 0.35em 0.8em;
+  background-color: #334155;
+  border-bottom: none;
 }
 
 :deep(.mac-dots) {
   display: flex;
-  gap: 8px;
-  margin-right: 1em;
+  gap: 6px;
+  margin-right: 0.8em;
 }
 
 :deep(.dot) {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
-:deep(.dot.red) {
-  background-color: #ff5f56;
-}
-
-:deep(.dot.yellow) {
-  background-color: #ffbd2e;
-}
-
-:deep(.dot.green) {
-  background-color: #27c93f;
-}
+:deep(.dot.red) { background-color: #ef4444; }
+:deep(.dot.yellow) { background-color: #f59e0b; }
+:deep(.dot.green) { background-color: #22c55e; }
 
 :deep(.language-name) {
   flex-grow: 1;
   text-align: left;
-  font-size: 13px;
-  font-family: sans-serif;
-  color: #6c757d;
-  text-transform: uppercase;
-}
-
-/* 复制按钮 */
-:deep(.copy-code-btn) {
-  padding: 4px 10px;
   font-size: 12px;
-  background-color: #f8f9fa;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #94a3b8;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+:deep(.copy-code-btn) {
+  padding: 2px 8px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid #64748b;
+  border-radius: 4px;
   cursor: pointer;
-  color: #495057;
-  transition: all 0.2s;
+  color: #cbd5e1;
+  transition: all 0.15s;
 }
-
 :deep(.copy-code-btn:hover) {
-  background-color: #e9ecef;
-  color: #212529;
+  background-color: #475569;
+  color: #f1f5f9;
 }
 
-/* 代码块 */
 :deep(pre) {
   background-color: transparent;
-  padding: 1em 1.5em;
+  padding: 1em 1.2em;
   margin: 0;
   border-radius: 0;
   overflow-x: auto;
   border: none;
   white-space: pre;
   word-wrap: normal;
+  font-size: 0.9rem;
 }
 
-/* 行内代码 */
+/* ─── Inline Code ─── */
 :deep(:not(pre) > code) {
-  background-color: #f0f2f5;
-  color: #c7254e;
-  padding: .2em .4em;
-  margin: 0 2px;
-  font-size: 90%;
+  background-color: #f1f5f9;
+  color: #e11d48;
+  padding: .15em .35em;
+  margin: 0 1px;
+  font-size: 88%;
   border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
 }
 
-/* 引用 */
+/* ─── Blockquote ─── */
 :deep(blockquote) {
-  padding: 0.5em 1.2em;
-  color: #6a737d;
-  border-left: 0.3em solid #d0d7de;
-  margin-left: 0;
-  background-color: #f6f8fa;
-  border-radius: 0 8px 8px 0;
+  padding: 0.8em 1.2em;
+  color: #475569;
+  border-left: 3px solid #3b82f6;
+  margin: 1em 0;
+  background-color: #f8fafc;
+  border-radius: 0 6px 6px 0;
+  font-style: normal;
 }
 
-/* 链接 */
+:deep(blockquote p:last-child) { margin-bottom: 0; }
+
+/* ─── Link ─── */
 :deep(a) {
-  color: #0969da;
+  color: #2563eb;
   text-decoration: none;
-  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
 }
-
 :deep(a:hover) {
-  text-decoration: underline;
+  border-bottom-color: #2563eb;
 }
 
-/* 表格 */
+/* ─── Table ─── */
 :deep(table) {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
   display: block;
-  overflow: auto;
+  overflow-x: auto;
   border-spacing: 0;
   border-radius: 8px;
-  border: 1px solid #d0d7de;
+  border: 1px solid #e2e8f0;
+  font-size: 0.92rem;
 }
 
-:deep(th),
-:deep(td) {
-  padding: 0.75rem 1rem;
-  border: 1px solid #d0d7de;
+:deep(th), :deep(td) {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  text-align: left;
 }
 
 :deep(th) {
   font-weight: 600;
-  background-color: #f6f8fa;
+  background-color: #f1f5f9;
+  color: #334155;
 }
 
 :deep(tr:nth-child(2n)) {
-  background-color: #f6f8fa;
+  background-color: #f8fafc;
 }
 
-/* 数学公式样式 */
+/* ─── KaTeX ─── */
 :deep(.katex) {
-  font: normal 1.21em KaTeX_Main, Times New Roman, serif;
+  font: normal 1.15em KaTeX_Main, Times New Roman, serif;
   line-height: 1.2;
 }
 
@@ -467,31 +441,25 @@ onMounted(renderContent)
 :deep(.katex .mathbf) { font-family: KaTeX_Main; font-weight: bold; }
 :deep(.katex .mathsf) { font-family: KaTeX_SansSerif; }
 :deep(.katex .mathtt) { font-family: KaTeX_Typewriter; }
-
 :deep(.katex-inline) { margin: 0 0.1em; }
 
 :deep(.katex-error) {
-  color: #cc0000;
-  background-color: #ffeeee;
+  color: #dc2626;
+  background-color: #fef2f2;
   padding: 2px 4px;
   border-radius: 3px;
-  border: 1px solid #ffcccc;
+  border: 1px solid #fecaca;
 }
 
-/* 响应式 */
+/* ─── Responsive ─── */
 @media (max-width: 768px) {
-  .markdown-body {
-    padding: 1.5em;
-  }
+  .markdown-body { padding: 1.5em; }
 }
 
 @media (max-width: 480px) {
-  .markdown-body {
-    padding: 1em;
-  }
-
-  :deep(h1) { font-size: 1.8em; }
-  :deep(h2) { font-size: 1.5em; }
-  :deep(h3) { font-size: 1.2em; }
+  .markdown-body { padding: 1em; }
+  :deep(h1) { font-size: 1.5em; }
+  :deep(h2) { font-size: 1.25em; }
+  :deep(h3) { font-size: 1.1em; }
 }
 </style>
