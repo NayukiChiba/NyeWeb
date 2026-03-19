@@ -27,7 +27,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import AdminSidebar from '@/components/Admin/AdminSidebar.vue'
 
-import FavoriteImagesEditor from '@/components/Admin/DashBoard/FavoriteImagesEditor.vue'
+import FavoriteImagesEditor from '@/components/Admin/Dashboard/FavoriteImagesEditor.vue'
 import axios from 'axios'
 
 const isMobile = ref(false)
