@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import Home from '../views/Main/Home.vue'
-import Knowledge from '../views/Main/Knowledge.vue'
+import Articles from '../views/Main/Articles.vue'
 import Projects from '../views/Main/Projects.vue'
 import Project from '../views/Main/Project.vue'
 import Tools from '../views/Main/Tools.vue'
@@ -9,7 +9,7 @@ import AboutMe from '../views/Main/AboutMe.vue'
 import Diary from '../views/Main/Diary.vue'
 import Todo from '../views/Main/Todo.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
-import DashBoard from '@/views/admin/DashBoard.vue'
+import Dashboard from '@/views/admin/Dashboard.vue'
 import ProjectManagement from '@/views/admin/ProjectManagement.vue'
 import ArticleManagement from '@/views/admin/ArticleManagement.vue'
 import ToolManagement from '@/views/admin/ToolManagement.vue'
@@ -30,8 +30,8 @@ const routes = [
     },
     {
         path: '/articles',
-        name: 'Knowledge',
-        component: Knowledge
+        name: 'Articles',
+        component: Articles
     },
     {
         path: '/articles/:slug+',
@@ -77,13 +77,13 @@ const routes = [
     },
     {
         path: '/admin',
-        component: DashBoard,
+        component: Dashboard,
         meta: {title: '管理后台'},
         children: [
             {
                 path: 'dashboard',
                 name: 'AdminDashboard',
-                component: () => import('@/views/admin/DashBoard.vue'),
+                component: () => import('@/views/admin/Dashboard.vue'),
                 meta: {title: '管理后台控制台'}
             },
             {
