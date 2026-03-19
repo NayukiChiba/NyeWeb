@@ -3,7 +3,7 @@
     <div v-if="articleNotFound" class="not-found">
       <h1>404 - 文章未找到</h1>
       <p>抱歉，您要查找的文章不存在或链接已更改。</p>
-      <router-link to="/knowledge">返回文章列表</router-link>
+      <router-link to="/articles">返回文章列表</router-link>
     </div>
     <div v-else class="content-layout">
 
