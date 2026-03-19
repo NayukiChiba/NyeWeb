@@ -1,5 +1,5 @@
 <template>
-  <div class="knowledge-container">
+  <div class="articles-container">
     <div class="header">
       <h1>文章</h1>
       <p>探索、学习、分享。这里是我关于技术、科学和思考的笔记。</p>
@@ -81,10 +81,10 @@ const fetchArticles = async () => {
 
     if (response.data && Array.isArray(response.data)) {
       articles.value = response.data
-      console.log(`Knowledge: 成功获取 ${articles.value.length} 篇文章`)
+      console.log(`Articles: 成功获取 ${articles.value.length} 篇文章`)
     }
   } catch (error) {
-    console.error('Knowledge: 获取文章数据失败:', error)
+    console.error('Articles: 获取文章数据失败:', error)
     articles.value = []
   } finally {
     loading.value = false
@@ -104,10 +104,10 @@ const fetchTags = async () => {
     if (response.data) {
       tags.value = response.data.tags || []
       tagCounts.value = response.data.counts || {}
-      console.log(`Knowledge: 成功获取 ${tags.value.length} 个标签`)
+      console.log(`Articles: 成功获取 ${tags.value.length} 个标签`)
     }
   } catch (error) {
-    console.error('Knowledge: 获取标签数据失败:', error)
+    console.error('Articles: 获取标签数据失败:', error)
     tags.value = []
     tagCounts.value = {}
   }
@@ -231,7 +231,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.knowledge-container {
+.articles-container {
   max-width: 1400px;
   margin: 100px auto 40px; /* 从 padding 改为 margin,与 Resources/Tools 一致 */
   padding: 0 20px; /* 只保留左右 padding */
@@ -302,7 +302,7 @@ onMounted(async () => {
 
 /* 响应式布局 */
 @media (max-width: 1024px) {
-  .knowledge-container {
+  .articles-container {
     margin: 90px auto 30px; /* 与 Resources/Tools 一致 */
     padding: 0 15px;
   }
@@ -340,7 +340,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .knowledge-container {
+  .articles-container {
     margin: 80px auto 20px; /* 与 Resources/Tools 一致 */
     padding: 0 10px;
   }
@@ -367,7 +367,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 480px) {
-  .knowledge-container {
+  .articles-container {
     margin: 70px auto 15px; /* 与 Resources/Tools 一致 */
     padding: 0 5px;
   }
