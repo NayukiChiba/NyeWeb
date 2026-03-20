@@ -28,7 +28,7 @@
       </p>
       <p class="flex items-center gap-2">
         <span class="text-primary/40 text-xs">✉️</span>
-        <a href="mailto:NayeyYe@163.com" class="text-primary hover:text-accent transition-colors font-medium">NayeyYe@163.com</a>
+        <a href="mailto:NayukiChiba@163.com" class="text-primary hover:text-accent transition-colors font-medium">NayukiChiba@163.com</a>
       </p>
     </div>
   </div>
